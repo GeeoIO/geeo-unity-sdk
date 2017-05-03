@@ -126,6 +126,8 @@
     <Compile Include="ThirdParty\WebSocket-Sharp\Server\WebSocketServiceHost`1.cs" />
     <Compile Include="ThirdParty\WebSocket-Sharp\Server\WebSocketServiceManager.cs" />
     <Compile Include="ThirdParty\WebSocket-Sharp\Server\WebSocketSessionManager.cs" />
+    <Compile Include="Tools\DebugLogs.cs" />
+    <Compile Include="Tools\MonoSingleton.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
@@ -144,4 +146,7 @@ if $(ConfigurationName) == Debug (
   <Target Name="AfterBuild">
   </Target>
   -->
+  <ItemGroup>
+    <Folder Include="Tools\" />
+  </ItemGroup>
 </Project>

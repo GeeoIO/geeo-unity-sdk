@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace Geeo
+namespace GeeoSdk
 {
 	/// <summary>
 	/// A class derivated from MonoBehaviour and following the singleton design pattern.

@@ -126,8 +126,9 @@
     <Compile Include="ThirdParty\WebSocket-Sharp\Server\WebSocketServiceHost`1.cs" />
     <Compile Include="ThirdParty\WebSocket-Sharp\Server\WebSocketServiceManager.cs" />
     <Compile Include="ThirdParty\WebSocket-Sharp\Server\WebSocketSessionManager.cs" />
-    <Compile Include="Tools\DebugLogs.cs" />
-    <Compile Include="Tools\MonoSingleton.cs" />
+    <Compile Include="Internal\DebugLogs.cs" />
+    <Compile Include="Internal\MonoSingleton.cs" />
+    <Compile Include="HighLevel\Geeo.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
@@ -147,6 +148,7 @@ if $(ConfigurationName) == Debug (
   </Target>
   -->
   <ItemGroup>
-    <Folder Include="Tools\" />
+    <Folder Include="HighLevel\" />
+    <Folder Include="Internal\" />
   </ItemGroup>
 </Project>

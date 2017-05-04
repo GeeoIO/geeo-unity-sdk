@@ -131,6 +131,9 @@
     <Compile Include="HighLevel\Geeo.cs" />
     <Compile Include="HighLevel\GeeoHTTP.cs" />
     <Compile Include="HighLevel\GeeoWS.cs" />
+    <Compile Include="Internal\PlatformSpecific\WebSocket.cs" />
+    <Compile Include="Internal\PlatformSpecific\WebSocket_CrossPlatform.cs" />
+    <Compile Include="Internal\PlatformSpecific\WebSocket_WebGL.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
@@ -152,5 +155,6 @@ if $(ConfigurationName) == Debug (
   <ItemGroup>
     <Folder Include="HighLevel\" />
     <Folder Include="Internal\" />
+    <Folder Include="Internal\PlatformSpecific\" />
   </ItemGroup>
 </Project>

@@ -129,6 +129,8 @@
     <Compile Include="Internal\DebugLogs.cs" />
     <Compile Include="Internal\MonoSingleton.cs" />
     <Compile Include="HighLevel\Geeo.cs" />
+    <Compile Include="HighLevel\GeeoHTTP.cs" />
+    <Compile Include="HighLevel\GeeoWS.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>

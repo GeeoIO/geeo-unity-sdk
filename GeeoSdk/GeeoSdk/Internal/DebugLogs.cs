@@ -11,6 +11,9 @@ namespace GeeoSdk
 	internal static class DebugLogs
 	{
 		#region Logs Handling
+		// Current logging level allowed (not allowed logs won't display)
+		internal static LogLevel logLevel = LogLevel.Verbose;
+
 		/// <summary>
 		/// Log an error message to console.
 		/// </summary>
@@ -18,7 +21,7 @@ namespace GeeoSdk
 		/// <param name="context">The involved object reference. (optional)</param>
 		internal static void LogError(object message, Object context = null)
 		{
-			if (Geeo.Instance.logLevel >= LogLevel.Error)
+			if (logLevel >= LogLevel.Error)
 				Debug.LogError(message, context);
 		}
 
@@ -29,7 +32,7 @@ namespace GeeoSdk
 		/// <param name="context">The involved object reference. (optional)</param>
 		internal static void LogWarning(object message, Object context = null)
 		{
-			if (Geeo.Instance.logLevel >= LogLevel.Warning)
+			if (logLevel >= LogLevel.Warning)
 				Debug.LogWarning(message, context);
 		}
 
@@ -40,7 +43,7 @@ namespace GeeoSdk
 		/// <param name="context">The involved object reference. (optional)</param>
 		internal static void LogVerbose(object message, Object context = null)
 		{
-			if (Geeo.Instance.logLevel >= LogLevel.Verbose)
+			if (logLevel >= LogLevel.Verbose)
 				Debug.Log(message, context);
 		}
 		#endregion

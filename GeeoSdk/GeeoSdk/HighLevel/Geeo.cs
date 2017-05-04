@@ -7,7 +7,34 @@ namespace GeeoSdk
 	/// </summary>
 	public sealed class Geeo : MonoSingleton<Geeo>
 	{
-		// Geeo SDK's messages logging level.
-		public LogLevel logLevel = LogLevel.Verbose;
+		// Geeo SDK's debug messages logging level.
+		[SerializeField] private LogLevel logLevel = LogLevel.Verbose;
+
+		// The HTTP and WebSocket endpoint URLs
+		[SerializeField] private string httpUrl = "https://demo.geeo.io";
+		[SerializeField] private string wsUrl = "wss://demo.geeo.io/ws";
+
+		#region Public
+		// The HTTP and WebSocket networking modules
+		public GeeoHTTP http;
+		public GeeoWS ws;
+		#endregion
+
+		#region Initializations
+		/// <summary>
+		/// Initialize SDK's debug messages logging level and networking modules at Awake.
+		/// </summary>
+		protected override void Awake()
+		{
+			base.Awake();
+
+			// Set the logging level
+			DebugLogs.logLevel = logLevel;
+
+			// Instantiate networking modules
+			http = new GeeoHTTP(httpUrl);
+			ws = new GeeoWS(wsUrl);
+		}
+		#endregion
 	}
 }

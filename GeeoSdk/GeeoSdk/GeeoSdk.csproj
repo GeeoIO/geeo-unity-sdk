@@ -127,13 +127,13 @@
     <Compile Include="ThirdParty\WebSocket-Sharp\Server\WebSocketServiceManager.cs" />
     <Compile Include="ThirdParty\WebSocket-Sharp\Server\WebSocketSessionManager.cs" />
     <Compile Include="Internal\DebugLogs.cs" />
-    <Compile Include="Internal\MonoSingleton.cs" />
     <Compile Include="HighLevel\Geeo.cs" />
     <Compile Include="HighLevel\GeeoHTTP.cs" />
     <Compile Include="HighLevel\GeeoWS.cs" />
     <Compile Include="Internal\PlatformSpecific\WebSocket.cs" />
     <Compile Include="Internal\PlatformSpecific\WebSocket_CrossPlatform.cs" />
     <Compile Include="Internal\PlatformSpecific\WebSocket_WebGL.cs" />
+    <Compile Include="HighLevel\MonoSingleton.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>

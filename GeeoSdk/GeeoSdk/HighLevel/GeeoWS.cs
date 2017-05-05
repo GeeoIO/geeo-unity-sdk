@@ -59,13 +59,13 @@ namespace GeeoSdk
 		/// When the user comes back, try to connect to the Geeo server again with the last used guest token.
 		/// </summary>
 		/// <param name="paused">If the application lost the focus.</param>
-		private void OnApplicationPause(bool paused)
+		internal void OnApplicationPause(bool paused)
 		{
 			// Check if the "disconnect on application pause" option is enabled
 			if (disconnectOnApplicationPause)
 			{
 				// User leaves the application (close the WebSocket connection but keep the guest token to connect again later)
-				if (paused)
+				if (paused && webSocket.isConnected)
 				{
 					DebugLogs.LogWarning("[GeeoWS:OnApplicationPause] Application paused ›› Closing connection...");
 					WebSocketClose();
@@ -82,7 +82,7 @@ namespace GeeoSdk
 		/// <summary>
 		/// Close the WebSocket if application is killed.
 		/// </summary>
-		private void OnApplicationQuit()
+		internal void OnApplicationQuit()
 		{
 			DebugLogs.LogWarning("[GeeoWS:OnApplicationQuit] Application quit ›› Closing connection...");
 			WebSocketClose();

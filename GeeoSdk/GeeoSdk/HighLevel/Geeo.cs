@@ -39,5 +39,24 @@ namespace GeeoSdk
 			ws = new GeeoWS(serverWsUrl, wsDisconnectOnApplicationPause);
 		}
 		#endregion
+
+		#region MonoBehaviour Events
+		/// <summary>
+		/// Transmit the OnApplicationPause MonoBehaviour event to the WebSocket module.
+		/// </summary>
+		/// <param name="paused">If the application lost the focus.</param>
+		private void OnApplicationPause(bool paused)
+		{
+			ws.OnApplicationPause(paused);
+		}
+
+		/// <summary>
+		/// Transmit the OnApplicationQuit MonoBehaviour event to the WebSocket module.
+		/// </summary>
+		private void OnApplicationQuit()
+		{
+			ws.OnApplicationQuit();
+		}
+		#endregion
 	}
 }

@@ -25,7 +25,6 @@ namespace GeeoSdk
 		private string currentError;
 		private string currentMessage;
 		private Coroutine runningCoroutine;
-		private Coroutine networkCheckCoroutine;
 
 		#region Events Callbacks
 		/// <summary>
@@ -36,10 +35,12 @@ namespace GeeoSdk
 			while (isConnected)
 			{
 				if ((currentError = CheckForErrors()) != null)
-					OnErrorCallbacks(currentError);
+					if (OnErrorCallbacks != null)
+						OnErrorCallbacks(currentError);
 
 				if ((currentMessage = CheckForMessages()) != null)
-					OnMessageCallbacks(currentMessage);
+					if (OnMessageCallbacks != null)
+						OnMessageCallbacks(currentMessage);
 
 				yield return null;
 			}
@@ -113,7 +114,10 @@ namespace GeeoSdk
 				yield return null;
 
 			isConnected = true;
-			OnOpenCallbacks();
+
+			if (OnOpenCallbacks != null)
+				OnOpenCallbacks();
+
 			StartRunningCoroutine();
 		}
 
@@ -137,12 +141,16 @@ namespace GeeoSdk
 				StopRunningCoroutine();
 				SocketClose(nativeReference);
 				isConnected = false;
-				OnCloseCallbacks();
+
+				if (OnCloseCallbacks != null)
+					OnCloseCallbacks();
 			}
 		}
 		#endregion
 
 		#region Network Check (Ping)
+		private Coroutine networkCheckCoroutine;
+
 		/// <summary>
 		/// Regularly check if the WebSocket is alive to detect potential network disconnections.
 		/// </summary>
@@ -153,7 +161,8 @@ namespace GeeoSdk
 				yield return new WaitForSecondsRealtime(networkCheckDelaySeconds);
 
 				if (SocketState(nativeReference) != 1)
-					OnErrorCallbacks(networkCheckTimeoutMessage);
+					if (OnErrorCallbacks != null)
+						OnErrorCallbacks(networkCheckTimeoutMessage);
 			}
 		}
 

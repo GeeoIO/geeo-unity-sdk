@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.Threading;
+using UnityEngine;
 
 using WebSocketSharp;
 
@@ -10,9 +12,17 @@ namespace GeeoSdk
 	{
 		private WebSocketSharp.WebSocket webSocketSharp;
 		private bool error;
-		private Thread networkCheckThread;
 
 		#region Events Callbacks
+		private Coroutine webSocketActionsCoroutine;
+
+		// Use a pending delegates list to make sure the callback calls will be made from the main thread instead of
+		// the ones created by the WebSocketSharp events to avoid "Unity classes not called from main thread" exceptions
+		private List<Action> pendingWebSocketActions = new List<Action>();
+
+		// Use a transitional delegates list to avoid "collection was modified; enumeration operation may not execute" exceptions
+		private List<Action> executingWebSocketActions = new List<Action>();
+
 		/// <summary>
 		/// What to do when the current WebSocket is opened.
 		/// </summary>
@@ -21,7 +31,10 @@ namespace GeeoSdk
 		private void OnWebSocketOpened(object sender, EventArgs eventData)
 		{
 			isConnected = true;
-			OnOpenCallbacks();
+
+			if (OnOpenCallbacks != null)
+				lock (pendingWebSocketActions)
+					pendingWebSocketActions.Add(OnOpenCallbacks);
 		}
 
 		/// <summary>
@@ -32,7 +45,13 @@ namespace GeeoSdk
 		private void OnErrorOccured(object sender, ErrorEventArgs errorData)
 		{
 			error = true;
-			OnErrorCallbacks(errorData.Message);
+
+			if (OnErrorCallbacks != null)
+				lock (pendingWebSocketActions)
+					pendingWebSocketActions.Add(delegate()
+					{
+						OnErrorCallbacks(errorData.Message);
+					});
 		}
 
 		/// <summary>
@@ -42,7 +61,12 @@ namespace GeeoSdk
 		/// <param name="messageData">Message WebSocket event details.</param>
 		private void OnMessageReceived(object sender, MessageEventArgs messageData)
 		{
-			OnMessageCallbacks(messageData.Data);
+			if (OnMessageCallbacks != null)
+				lock (pendingWebSocketActions)
+					pendingWebSocketActions.Add(delegate()
+					{
+						OnMessageCallbacks(messageData.Data);
+					});
 		}
 
 		/// <summary>
@@ -53,7 +77,33 @@ namespace GeeoSdk
 		private void OnWebSocketClosed(object sender, CloseEventArgs closeData)
 		{
 			isConnected = false;
-			OnCloseCallbacks();
+
+			if (OnCloseCallbacks != null)
+				lock (pendingWebSocketActions)
+					pendingWebSocketActions.Add(OnCloseCallbacks);
+		}
+
+		/// <summary>
+		/// Each frame, execute then clear pending WebSocket delegates.
+		/// </summary>
+		private IEnumerator ExecuteWebSocketActions()
+		{
+			while (true)
+			{
+				if (pendingWebSocketActions.Count > 0)
+					lock (pendingWebSocketActions)
+					{
+						executingWebSocketActions.AddRange(pendingWebSocketActions);
+						pendingWebSocketActions.Clear();
+
+						foreach (Action executingWebSocketMessage in executingWebSocketActions)
+							executingWebSocketMessage();
+
+						executingWebSocketActions.Clear();
+					}
+
+				yield return null;
+			}
 		}
 		#endregion
 
@@ -74,6 +124,9 @@ namespace GeeoSdk
 
 			while (!isConnected && !error)
 				yield return null;
+
+			if (isConnected && (webSocketActionsCoroutine == null))
+				webSocketActionsCoroutine = Geeo.Instance.StartCoroutine(ExecuteWebSocketActions());
 		}
 
 		/// <summary>
@@ -96,6 +149,8 @@ namespace GeeoSdk
 		#endregion
 
 		#region Network Check (Ping)
+		private Thread networkCheckThread;
+
 		/// <summary>
 		/// Regularly check if the WebSocket is alive to detect potential network disconnections.
 		/// </summary>
@@ -106,7 +161,16 @@ namespace GeeoSdk
 				Thread.Sleep(networkCheckDelayMilliseconds);
 
 				if (!webSocketSharp.IsAlive)
-					OnErrorCallbacks(networkCheckTimeoutMessage);
+				{
+					error = true;
+
+					if (OnErrorCallbacks != null)
+						lock (pendingWebSocketActions)
+							pendingWebSocketActions.Add(delegate()
+							{
+								OnErrorCallbacks(networkCheckTimeoutMessage);
+							});
+				}
 			}
 		}
 

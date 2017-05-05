@@ -28,7 +28,9 @@ namespace GeeoSdk
 		private Coroutine networkCheckCoroutine;
 
 		#region Events Callbacks
-		// Check if any error has occurred or any message has been received
+		/// <summary>
+		/// Check if any error has occurred or any message has been received.
+		/// </summary>
 		private IEnumerator CheckForErrorsAndMessages()
 		{
 			while (isConnected)
@@ -43,7 +45,9 @@ namespace GeeoSdk
 			}
 		}
 
-		// Check if any error has occurred
+		/// <summary>
+		/// Check if any error has occurred.
+		/// </summary>
 		private string CheckForErrors()
 		{
 			byte[] buffer = new byte[bufferSize];
@@ -55,7 +59,9 @@ namespace GeeoSdk
 			return Encoding.UTF8.GetString(buffer);				
 		}
 
-		// Check if any message has been received
+		/// <summary>
+		/// Check if any message has been received.
+		/// </summary>
 		private string CheckForMessages()
 		{
 			int length = SocketRecvLength(nativeReference);
@@ -72,14 +78,18 @@ namespace GeeoSdk
 			return Encoding.UTF8.GetString(buffer);
 		}
 
-		// Start checking for errors and messages
+		/// <summary>
+		/// Start checking for errors and messages.
+		/// </summary>
 		private void StartRunningCoroutine()
 		{
 			StopRunningCoroutine();
 			runningCoroutine = Geeo.Instance.StartCoroutine(CheckForErrorsAndMessages());
 		}
 
-		// Stop checking for errors and messages
+		/// <summary>
+		/// Stop checking for errors and messages.
+		/// </summary>
 		private void StopRunningCoroutine()
 		{
 			if (runningCoroutine != null)
@@ -91,7 +101,10 @@ namespace GeeoSdk
 		#endregion
 
 		#region WebSocket Implement & Events Callbacks
-		// Create a new WebSocket and connect with the given URL
+		/// <summary>
+		/// Create a new WebSocket and connect with the given URL.
+		/// </summary>
+		/// <param name="url">The endpoint URL to connect to.</param>
 		public override IEnumerator Connect(string url)
 		{
 			nativeReference = SocketCreate(url);
@@ -104,14 +117,19 @@ namespace GeeoSdk
 			StartRunningCoroutine();
 		}
 
-		// Send a message through the current WebSocket
+		/// <summary>
+		/// Send a message through the current WebSocket.
+		/// </summary>
+		/// <param name="message">The message to send.</param>
 		public override void Send(string message)
 		{
 			byte[] buffer = Encoding.UTF8.GetBytes(message);
 			SocketSendString(nativeReference, buffer, buffer.Length);
 		}
 
-		// Close the current WebSocket connection
+		/// <summary>
+		/// Close the current WebSocket connection.
+		/// </summary>
 		public override void Close()
 		{
 			if (isConnected)
@@ -125,7 +143,9 @@ namespace GeeoSdk
 		#endregion
 
 		#region Network Check (Ping)
-		// Regularly check if the WebSocket is alive to detect potential network disconnection while in a room
+		/// <summary>
+		/// Regularly check if the WebSocket is alive to detect potential network disconnections.
+		/// </summary>
 		private IEnumerator NetworkCheck()
 		{
 			while (true)
@@ -137,14 +157,18 @@ namespace GeeoSdk
 			}
 		}
 
-		// Start the network check loop
+		/// <summary>
+		/// Start the network check loop. (ping)
+		/// </summary>
 		public override void NetworkCheckStart()
 		{
 			if (networkCheckCoroutine == null)
 				networkCheckCoroutine = Geeo.Instance.StartCoroutine(NetworkCheck());
 		}
 
-		// Stop the network check loop
+		/// <summary>
+		/// Stop the network check loop. (ping)
+		/// </summary>
 		public override void NetworkCheckStop()
 		{
 			if (networkCheckCoroutine != null)

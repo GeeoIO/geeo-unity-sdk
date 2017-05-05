@@ -6,32 +6,40 @@ namespace GeeoSdk
 	internal abstract class WebSocket
 	{
 		#region Events Callbacks
-		// Callback: a new WebSocket just connected
 		protected Action OnOpenCallbacks;
+		/// <summary>
+		/// Callback: a new WebSocket just connected.
+		/// </summary>
 		public event Action OnOpen
 		{
 			add {OnOpenCallbacks += value;}
 			remove {OnOpenCallbacks -= value;}
 		}
 
-		// Callback: the current WebSocket just received a message
 		protected Action<string> OnMessageCallbacks;
+		/// <summary>
+		/// Callback: the current WebSocket just received a message.
+		/// </summary>
 		public event Action<string> OnMessage
 		{
 			add {OnMessageCallbacks += value;}
 			remove {OnMessageCallbacks -= value;}
 		}
 
-		// Callback: the current WebSocket just getted an error
 		protected Action<string> OnErrorCallbacks;
+		/// <summary>
+		/// Callback: the current WebSocket just got an error.
+		/// </summary>
 		public event Action<string> OnError
 		{
 			add {OnErrorCallbacks += value;}
 			remove {OnErrorCallbacks -= value;}
 		}
 
-		// Callback: the current WebSocket just closed
 		protected Action OnCloseCallbacks;
+		/// <summary>
+		/// Callback: the current WebSocket just closed.
+		/// </summary>
 		public event Action OnClose
 		{
 			add {OnCloseCallbacks += value;}
@@ -40,16 +48,26 @@ namespace GeeoSdk
 		#endregion
 
 		#region WebSocket Implement
-		// If the current WebSocket is currently opened
+		/// <summary>
+		/// If the current WebSocket is currently opened.
+		/// </summary>
 		public bool isConnected {get; protected set;}
 
-		// Create a new WebSocket and connect with the given URL
+		/// <summary>
+		/// Create a new WebSocket and connect with the given URL.
+		/// </summary>
+		/// <param name="url">The endpoint URL to connect to.</param>
 		public abstract IEnumerator Connect(string url);
 
-		// Send a message through the current WebSocket
+		/// <summary>
+		/// Send a message through the current WebSocket.
+		/// </summary>
+		/// <param name="message">The message to send.</param>
 		public abstract void Send(string message);
 
-		// Close the current WebSocket connection
+		/// <summary>
+		/// Close the current WebSocket connection.
+		/// </summary>
 		public abstract void Close();
 		#endregion
 
@@ -59,10 +77,14 @@ namespace GeeoSdk
 		protected const int networkCheckDelayMilliseconds = (int)(networkCheckDelaySeconds * 1000f);
 		protected const string networkCheckTimeoutMessage = "Ping timeout reached";
 
-		// Start the network check loop
+		/// <summary>
+		/// Start the network check loop. (ping)
+		/// </summary>
 		public abstract void NetworkCheckStart();
 
-		// Stop the network check loop
+		/// <summary>
+		/// Stop the network check loop. (ping)
+		/// </summary>
 		public abstract void NetworkCheckStop();
 		#endregion
 	}

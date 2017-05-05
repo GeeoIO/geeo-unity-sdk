@@ -13,27 +13,43 @@ namespace GeeoSdk
 		private Thread networkCheckThread;
 
 		#region Events Callbacks
-		// What to do when the current WebSocket is opened
+		/// <summary>
+		/// What to do when the current WebSocket is opened.
+		/// </summary>
+		/// <param name="sender">Identifier of the instance which sent this event.</param>
+		/// <param name="eventData">Opened WebSocket event details.</param>
 		private void OnWebSocketOpened(object sender, EventArgs eventData)
 		{
 			isConnected = true;
 			OnOpenCallbacks();
 		}
 
-		// What to do when the current WebSocket gets an error
+		/// <summary>
+		/// What to do when the current WebSocket gets an error.
+		/// </summary>
+		/// <param name="sender">Identifier of the instance which sent this event.</param>
+		/// <param name="errorData">Error WebSocket event details.</param>
 		private void OnErrorOccured(object sender, ErrorEventArgs errorData)
 		{
 			error = true;
 			OnErrorCallbacks(errorData.Message);
 		}
 
-		// What to do when the current WebSocket receives a message
+		/// <summary>
+		/// What to do when the current WebSocket receives a message.
+		/// </summary>
+		/// <param name="sender">Identifier of the instance which sent this event.</param>
+		/// <param name="messageData">Message WebSocket event details.</param>
 		private void OnMessageReceived(object sender, MessageEventArgs messageData)
 		{
 			OnMessageCallbacks(messageData.Data);
 		}
 
-		// What to do when the current WebSocket is closed
+		/// <summary>
+		/// What to do when the current WebSocket is closed.
+		/// </summary>
+		/// <param name="sender">Identifier of the instance which sent this event.</param>
+		/// <param name="closeData">Closed WebSocket event details.</param>
 		private void OnWebSocketClosed(object sender, CloseEventArgs closeData)
 		{
 			isConnected = false;
@@ -42,7 +58,10 @@ namespace GeeoSdk
 		#endregion
 
 		#region WebSocket Implement
-		// Create a new WebSocket and connect with the given URL
+		/// <summary>
+		/// Create a new WebSocket and connect with the given URL.
+		/// </summary>
+		/// <param name="url">The endpoint URL to connect to.</param>
 		public override IEnumerator Connect(string url)
 		{
 			error = false;
@@ -57,13 +76,18 @@ namespace GeeoSdk
 				yield return null;
 		}
 
-		// Send a message through the current WebSocket
+		/// <summary>
+		/// Send a message through the current WebSocket.
+		/// </summary>
+		/// <param name="message">The message to send.</param>
 		public override void Send(string message)
 		{
 			webSocketSharp.Send(message);
 		}
 
-		// Close the current WebSocket connection
+		/// <summary>
+		/// Close the current WebSocket connection.
+		/// </summary>
 		public override void Close()
 		{
 			if (isConnected)
@@ -72,7 +96,9 @@ namespace GeeoSdk
 		#endregion
 
 		#region Network Check (Ping)
-		// Regularly check if the WebSocket is alive to detect potential network disconnection while in a room
+		/// <summary>
+		/// Regularly check if the WebSocket is alive to detect potential network disconnections.
+		/// </summary>
 		private void NetworkCheck()
 		{
 			while (Thread.CurrentThread.IsAlive)
@@ -84,7 +110,9 @@ namespace GeeoSdk
 			}
 		}
 
-		// Start the network check loop
+		/// <summary>
+		/// Start the network check loop. (ping)
+		/// </summary>
 		public override void NetworkCheckStart()
 		{
 			if (networkCheckThread == null)
@@ -94,7 +122,9 @@ namespace GeeoSdk
 			}
 		}
 
-		// Stop the network check loop
+		/// <summary>
+		/// Stop the network check loop. (ping)
+		/// </summary>
 		public override void NetworkCheckStop()
 		{
 			if (networkCheckThread != null)

@@ -11,8 +11,8 @@ namespace GeeoSdk
 		[SerializeField] private LogLevel logLevel = LogLevel.Verbose;
 
 		// The HTTP and WebSocket endpoint URLs
-		[SerializeField] private string httpUrl = "https://demo.geeo.io";
-		[SerializeField] private string wsUrl = "wss://demo.geeo.io/ws";
+		[SerializeField] private string serverHttpUrl = "https://demo.geeo.io";
+		[SerializeField] private string serverWsUrl = "wss://demo.geeo.io/ws";
 
 		#region Public
 		// The HTTP and WebSocket networking modules
@@ -32,8 +32,8 @@ namespace GeeoSdk
 			DebugLogs.logLevel = logLevel;
 
 			// Instantiate networking modules
-			http = new GeeoHTTP(httpUrl);
-			ws = new GeeoWS(wsUrl);
+			http = new GeeoHTTP(serverHttpUrl);
+			ws = new GeeoWS(serverWsUrl);
 		}
 		#endregion
 	}

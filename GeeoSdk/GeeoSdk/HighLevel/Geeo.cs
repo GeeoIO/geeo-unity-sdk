@@ -7,12 +7,15 @@ namespace GeeoSdk
 	/// </summary>
 	public sealed class Geeo : MonoSingleton<Geeo>
 	{
-		// Geeo SDK's debug messages logging level.
+		// Geeo SDK's debug messages logging level
 		[SerializeField] private LogLevel logLevel = LogLevel.Verbose;
 
 		// The HTTP and WebSocket endpoint URLs
 		[SerializeField] private string serverHttpUrl = "https://demo.geeo.io";
 		[SerializeField] private string serverWsUrl = "wss://demo.geeo.io/ws";
+
+		// If the WebSocket connection should be closed when the application focus is lost
+		[SerializeField] private bool wsDisconnectOnApplicationPause = true;
 
 		#region Public
 		// The HTTP and WebSocket networking modules
@@ -33,7 +36,7 @@ namespace GeeoSdk
 
 			// Instantiate networking modules
 			http = new GeeoHTTP(serverHttpUrl);
-			ws = new GeeoWS(serverWsUrl);
+			ws = new GeeoWS(serverWsUrl, wsDisconnectOnApplicationPause);
 		}
 		#endregion
 	}

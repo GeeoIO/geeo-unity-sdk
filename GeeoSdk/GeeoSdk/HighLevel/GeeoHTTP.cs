@@ -16,7 +16,7 @@ namespace GeeoSdk
 		/// <summary>
 		/// HTTP module's constructor.
 		/// </summary>
-		/// <param name="_httpUrl">HTTP endpoint URL.</param>
+		/// <param name="_httpUrl">The HTTP endpoint URL.</param>
 		public GeeoHTTP(string _httpUrl)
 		{
 			httpUrl = _httpUrl;
@@ -25,7 +25,7 @@ namespace GeeoSdk
 
 		#region Requests Handling
 		// The complete URL format for a "get guest token" request
-		private const string getGuestToken_requestUrlFormat = "{0}/api/dev/token?viewId={2}&agId={1}";
+		private const string getGuestToken_requestUrlFormat = "{0}/api/dev/token?agId={1}&viewId={2}";
 
 		/// <summary>
 		/// Get a guest token from server. Only possible with development routes allowed.
@@ -49,7 +49,7 @@ namespace GeeoSdk
 		private IEnumerator GetGuestToken_Coroutine(string agentId, string viewportId, Action<string> OnSuccess, Action<string> OnError)
 		{
 			// Build the "get guest token" request URL
-			string requestUrl = string.Format(getGuestToken_requestUrlFormat, httpUrl, "", viewportId);
+			string requestUrl = string.Format(getGuestToken_requestUrlFormat, httpUrl, agentId, viewportId);
 			DebugLogs.LogVerbose("[GeeoHTTP:GetGuestToken] Request URL (GET): " + requestUrl);
 
 			// Send the request with the GET method

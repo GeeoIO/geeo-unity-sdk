@@ -25,13 +25,15 @@ public class DemoScript : MonoBehaviour
 
 		// Ask the Geeo server for a guest token
 		Geeo.Instance.http.GetGuestToken("aID", "wpID", delegate(string guestToken)
-		{
-			Debug.Log("[DemoScript:GetGuestToken] Obtained guest token ›› " + guestToken);
-		},
-		delegate(string errorMessage)
-		{
-			LogAndDisplayError(errorMessage, "[DemoScript:GetGuestToken]");
-		});
+			{
+				Debug.Log("[DemoScript:GetGuestToken] Obtained guest token ›› " + guestToken);
+
+
+			},
+			delegate(string errorMessage)
+			{
+				LogAndDisplayError(errorMessage, "[DemoScript:GetGuestToken]");
+			});
 	}
 	#endregion
 

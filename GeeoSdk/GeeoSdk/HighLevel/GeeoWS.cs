@@ -51,12 +51,12 @@ namespace GeeoSdk
 		// The current running WebSocket connection coroutine
 		private Coroutine webSocketConnectCoroutine;
 
-		// The last guest token used to connect the WebSocket
-		private string lastGuestToken;
+		// The last token used to connect with the WebSocket
+		private string lastWsToken;
 
 		/// <summary>
 		/// If the user leaves the application and this option is enabled, close the WebSocket to avoid useless data transfers.
-		/// When the user comes back, try to connect to the Geeo server again with the last used guest token.
+		/// When the user comes back, try to connect to the Geeo server again with the last used WebSocket token.
 		/// </summary>
 		/// <param name="paused">If the application lost the focus.</param>
 		internal void OnApplicationPause(bool paused)
@@ -64,23 +64,23 @@ namespace GeeoSdk
 			// Check if the "disconnect on application pause" option is enabled
 			if (disconnectOnApplicationPause)
 			{
-				// User leaves the application (close the WebSocket connection but keep the guest token to connect again later)
+				// User leaves the application (close the WebSocket connection but keep the WebSocket token to connect again later)
 				if (paused && webSocket.isConnected)
 				{
 					DebugLogs.LogWarning("[GeeoWS:OnApplicationPause] Application paused ›› Closing connection...");
 					WebSocketClose();
 				}
-				// User resumes the application and there is a stored guest token (try to connect the WebSocket again)
-				else if (lastGuestToken != null)
+				// User resumes the application and there is a stored WebSocket token (try to connect the WebSocket again)
+				else if (!paused && !string.IsNullOrEmpty(lastWsToken))
 				{
 					DebugLogs.LogWarning("[GeeoWS:OnApplicationPause] Application resumed ›› Reopening connection...");
-					webSocketConnectCoroutine = Geeo.Instance.StartCoroutine(WebSocketConnect(lastGuestToken));
+					webSocketConnectCoroutine = Geeo.Instance.StartCoroutine(WebSocketConnect(lastWsToken));
 				}
 			}
 		}
 
 		/// <summary>
-		/// Close the WebSocket if application is killed.
+		/// Close the WebSocket when application is killed.
 		/// </summary>
 		internal void OnApplicationQuit()
 		{
@@ -103,22 +103,18 @@ namespace GeeoSdk
 			// Stop the network check (ping)
 			webSocket.NetworkCheckStop();
 
-			// Clear the pending WebSocket messages list
-			lock (pendingWebSocketMessages)
-				pendingWebSocketMessages.Clear();
-
 			// Close the WebSocket
 			webSocket.Close();
 		}
 
 		/// <summary>
-		/// Connect the WebSocket with a guest token previously provided by the Geeo server.
+		/// Connect the WebSocket with a token previously provided by the Geeo server.
 		/// </summary>
-		/// <param name="guestToken">The guest token provided by the Geeo server.</param>
-		private IEnumerator WebSocketConnect(string guestToken)
+		/// <param name="wsToken">The WebSocket token provided by the Geeo server.</param>
+		private IEnumerator WebSocketConnect(string wsToken)
 		{
 			// Build the "websocket connect" request URL
-			string requestUrl = string.Format(webSocketConnect_requestUrlFormat, wsUrl, guestToken);
+			string requestUrl = string.Format(webSocketConnect_requestUrlFormat, wsUrl, wsToken);
 			DebugLogs.LogVerbose("[GeeoWS:WebSocketConnect] Request URL: " + requestUrl);
 
 			// Wait for the connection to be established
@@ -131,12 +127,100 @@ namespace GeeoSdk
 		}
 		#endregion
 
-		#region Messages Handling
-		// The WebSocket received messages Actions queue to treat
-		private List<Action> executingWebSocketMessages = new List<Action>();
-		private List<Action> pendingWebSocketMessages = new List<Action>();
+		#region WebSocket Internal Events
+		/// <summary>
+		/// Listener to react when a "WebSocket opened" event occurs.
+		/// </summary>
+		private void OnWebSocketOpen()
+		{
+			Debug.Log("[GeeoWS:OnWebSocketOpen] WebSocket opened");
 
+			// TODO: OnConnected event callback
+		}
 
+		/// <summary>
+		/// Listener to react when a "WebSocket closed" event occurs.
+		/// </summary>
+		private void OnWebSocketClose()
+		{
+			Debug.LogWarning("[GeeoWS:OnWebSocketClose] WebSocket closed");
+
+			// TODO: OnDisconnected event callback
+		}
+
+		/// <summary>
+		/// Listener to react when a "WebSocket error" event occurs.
+		/// </summary>
+		/// <param name="error">The error's message.</param>
+		private void OnWebSocketError(string error)
+		{
+			Debug.LogError("[GeeoWS:OnWebSocketError] WebSocket error ›› " + error);
+
+			// TODO: OnError event callback
+		}
+
+		/// <summary>
+		/// Listener to react when a "WebSocket message" event occurs.
+		/// </summary>
+		/// <param name="message">The received message.</param>
+		private void OnWebSocketMessage(string message)
+		{
+			Debug.Log("[GeeoWS:OnWebSocketMessage] WebSocket message ›› " + message);
+
+			// TODO: Treat messages >> ... events callbacks
+		}
+		#endregion
+
+		#region WebSocket Public Events
+		// TODO: public Geeo relative events: (OnPoiEntered, OnPoiLeft, etc...) + OnConnected & OnDisconnected
+		#endregion
+
+		#region Requests Handling
+		/// <summary>
+		/// Use a WebSocket token previously provided by the Geeo server to open a WebSocket connection.
+		/// If development routes are allowed, you may use the GeeoHTTP.GetGuestToken() method to get a token.
+		/// Once the connection is opened, the OnConnected event will be triggered (so you should register a callback to it).
+		/// </summary>
+		/// <param name="wsToken">The WebSocket token previously provided by the Geeo server.</param>
+		public void Connect(string wsToken)
+		{
+			Debug.Log("[GeeoWS:Connect] Connecting... ›› WebSocket token: " + wsToken);
+
+			// Keep the token used to connect the WebSocket
+			lastWsToken = wsToken;
+
+			// Register listeners for future WebSocket events
+			webSocket.OnOpen += OnWebSocketOpen;
+			webSocket.OnClose += OnWebSocketClose;
+			webSocket.OnError += OnWebSocketError;
+			webSocket.OnMessage += OnWebSocketMessage;
+
+			// Create a WebSocket and connect to the Geeo server
+			webSocketConnectCoroutine = Geeo.Instance.StartCoroutine(WebSocketConnect(wsToken));
+		}
+
+		/// <summary>
+		/// Remove the last used WebSocket token and registered listeners, then close the current WebSocket connection.
+		/// Once the connection is closed, the OnDisconnected event will be triggered (so you should register a callback to it).
+		/// </summary>
+		public void Disconnect()
+		{
+			Debug.Log("[GeeoWS:Disconnect] Disconnecting...");
+
+			// Unvalidate the last used WebSocket token
+			lastWsToken = null;
+
+			// Unregister listeners for future WebSocket events
+			webSocket.OnOpen -= OnWebSocketOpen;
+			webSocket.OnError -= OnWebSocketError;
+			webSocket.OnMessage -= OnWebSocketMessage;
+
+			// Disconnect from the Geeo server
+			WebSocketClose();
+
+			// We unregister the OnClose listener only after the close call to get this event trigger
+			webSocket.OnClose -= OnWebSocketClose;
+		}
 		#endregion
 	}
 }

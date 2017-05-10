@@ -28,7 +28,7 @@ public class DemoScript : MonoBehaviour
 			{
 				Debug.Log("[DemoScript:GetGuestToken] Obtained guest token ›› " + guestToken);
 
-
+				Geeo.Instance.ws.Connect(guestToken);
 			},
 			delegate(string errorMessage)
 			{

@@ -114,6 +114,9 @@ namespace GeeoSdk
 		/// <param name="url">The endpoint URL to connect to.</param>
 		public override IEnumerator Connect(string url)
 		{
+			if (webSocketActionsCoroutine == null)
+				webSocketActionsCoroutine = Geeo.Instance.StartCoroutine(ExecuteWebSocketActions());
+			
 			error = false;
 			webSocketSharp = new WebSocketSharp.WebSocket(url);
 			webSocketSharp.OnOpen += OnWebSocketOpened;
@@ -124,9 +127,6 @@ namespace GeeoSdk
 
 			while (!isConnected && !error)
 				yield return null;
-
-			if (isConnected && (webSocketActionsCoroutine == null))
-				webSocketActionsCoroutine = Geeo.Instance.StartCoroutine(ExecuteWebSocketActions());
 		}
 
 		/// <summary>

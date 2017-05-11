@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -13,8 +14,11 @@ namespace GeeoDemo
 	public class DemoScript : MonoBehaviour
 	{
 		#region Geeo Handling
+		// The format to get an ISO 8601 DateTime string
+		private const string dateTimeFormat_Iso8601 = "yyyy-MM-ddTHH:mm:ss.fffZ";
+
 		/// <summary>
-		/// At Start, connect with the Geeo server and register as a new agent with its viewport.
+		/// At Start, connect with the Geeo server and register as a new agent with its associated viewport.
 		/// </summary>
 		private void Start()
 		{
@@ -25,10 +29,16 @@ namespace GeeoDemo
 				return;
 			}
 
-			DisplayConnectionStatus(ConnectionStatus.Connecting);
+			Debug.Log("[DemoScript:Start] Connecting to the Geeo server...");
+			DisplayStatus(Status.Geeo, StatusState.Initializing);
+
+			// Generate pseudo-random agent and viewport identifiers
+			string currentDateTime = DateTime.UtcNow.ToString(dateTimeFormat_Iso8601);
+			string agentId = "agent" + currentDateTime;
+			string viewportId = "view" + currentDateTime;
 
 			// Ask the Geeo server for a guest token (development only)
-			Geeo.Instance.http.GetGuestToken("aID", "wpID", delegate(string guestToken)
+			Geeo.Instance.http.GetGuestToken(agentId, viewportId, delegate(string guestToken)
 				{
 					Debug.Log("[DemoScript:GetGuestToken] Obtained guest token ›› " + guestToken);
 
@@ -43,7 +53,7 @@ namespace GeeoDemo
 				delegate(string errorMessage)
 				{
 					LogAndDisplayError("Geeo error: " + errorMessage, "[DemoScript:GetGuestToken]");
-					DisplayConnectionStatus(ConnectionStatus.Disconnected);
+					DisplayStatus(Status.Geeo, StatusState.Stopped);
 				});
 		}
 
@@ -52,8 +62,11 @@ namespace GeeoDemo
 		/// </summary>
 		private void OnGeeoConnected()
 		{
-			Debug.Log("[DemoScript:OnGeeoConnected] Geeo connected!");
-			DisplayConnectionStatus(ConnectionStatus.Connected);
+			Debug.Log("[DemoScript:OnGeeoConnected] Geeo connected ›› Starting user location: " + lastUserLocation.ToString());
+			DisplayStatus(Status.Geeo, StatusState.Started);
+
+			// Start the location service to get the user location
+			runningUserLocationUpdateCoroutine = StartCoroutine(StartUserLocationUpdate());
 		}
 
 		/// <summary>
@@ -61,16 +74,132 @@ namespace GeeoDemo
 		/// </summary>
 		private void OnGeeoDisconnected()
 		{
-			Debug.Log("[DemoScript:OnGeeoDisconnected] Geeo disconnected!");
-			DisplayConnectionStatus(ConnectionStatus.Disconnected);
+			Debug.LogWarning("[DemoScript:OnGeeoDisconnected] Geeo disconnected");
+			DisplayStatus(Status.Geeo, StatusState.Stopped);
+
+			// Stop the location service (no need to get the user location anymore)
+			StopUserLocationUpdate();
 		}
 
 		/// <summary>
 		/// Callback: the Geeo SDK just encountered an error.
 		/// </summary>
+		/// <param name="error">The error message.</param>
 		private void OnGeeoError(string error)
 		{
 			LogAndDisplayError("Geeo error: " + error, "[DemoScript:OnGeeoError]");
+		}
+		#endregion
+
+		#region User Location
+		/// <summary>
+		/// Represents a user location with its latitude and longitude coordinates.
+		/// </summary>
+		private class UserLocation
+		{
+			public float latitude;
+			public float longitude;
+
+			/// <summary>
+			/// Class constructor.
+			/// </summary>
+			/// <param name="_latitude">User's location latitude.</param>
+			/// <param name="_longitude">User's location longitude.</param>
+			public UserLocation(float _latitude, float _longitude)
+			{
+				latitude = _latitude;
+				longitude= _longitude;
+			}
+
+			/// <summary>
+			/// Converts the value of this instance to its equivalent string representation.
+			/// </summary>
+			public override string ToString()
+			{
+				return string.Format ("{{{0}, {1}}}", latitude, longitude);
+			}
+		}
+
+		// The last user location obtained from the location service
+		// If no user location can be obtained from the location service, let's say you're in Tenerife by default
+		private UserLocation lastUserLocation = new UserLocation(28.04798f, -16.71737f);
+
+		// The current running user location update coroutine
+		private Coroutine runningUserLocationUpdateCoroutine;
+
+		// Time to wait (in seconds) between each location service initialization check
+		private const float locationServiceInitChecksDelay = 0.05f;
+
+		// Time to wait (in seconds) between each update of the user location from the location service
+		private const float locationServiceUserLocationUpdatesDelay = 1f;
+
+		/// <summary>
+		/// Start continuously querying user location.
+		/// </summary>
+		private IEnumerator StartUserLocationUpdate()
+		{
+			Debug.Log("[DemoScript:StartUserLocationUpdate] User location service starting...");
+			DisplayStatus(Status.Location, StatusState.Initializing);
+
+			// First, check if user has location service enabled
+			if (!Input.location.isEnabledByUser)
+			{
+				LogAndDisplayError("Location service not enabled by user", "[DemoScript:StartUserLocationUpdate]");
+				DisplayStatus(Status.Location, StatusState.Stopped);
+				runningUserLocationUpdateCoroutine = null;
+				yield break;
+			}
+
+			// Start location service before querying location
+			Input.location.Start();
+
+			// Wait until service initializes
+			while (Input.location.status == LocationServiceStatus.Initializing)
+				yield return new WaitForSeconds(locationServiceInitChecksDelay);
+
+			// Connection has failed
+			if (Input.location.status == LocationServiceStatus.Failed)
+			{
+				LogAndDisplayError("Unable to start location service", "[DemoScript:StartUserLocationUpdate]");
+				DisplayStatus(Status.Location, StatusState.Stopped);
+				runningUserLocationUpdateCoroutine = null;
+				yield break;
+			}
+			// Access granted and location value could be retrieved
+			else
+			{
+				Debug.Log("[DemoScript:StartUserLocationUpdate] User location service started");
+				DisplayStatus(Status.Location, StatusState.Started);
+
+				// Continuously query user location with some delay between each query
+				while (true)
+				{
+					yield return new WaitForSeconds(locationServiceUserLocationUpdatesDelay);
+
+					lastUserLocation.latitude = Input.location.lastData.latitude;
+					lastUserLocation.longitude = Input.location.lastData.longitude;
+					Debug.Log("[DemoScript:StartUserLocationUpdate] Last user location: " + lastUserLocation.ToString());
+				}
+			}
+		}
+
+		/// <summary>
+		/// Stop querying user location.
+		/// </summary>
+		private void StopUserLocationUpdate()
+		{
+			// Stop the current running user location update coroutine
+			if (runningUserLocationUpdateCoroutine != null)
+			{
+				StopCoroutine(runningUserLocationUpdateCoroutine);
+				runningUserLocationUpdateCoroutine = null;
+			}
+
+			// Stop location service
+				Input.location.Stop();
+
+			Debug.LogWarning("[DemoScript:StopUserLocationUpdate] User location service stopped");
+			DisplayStatus(Status.Location, StatusState.Stopped);
 		}
 		#endregion
 
@@ -115,6 +244,7 @@ namespace GeeoDemo
 		/// <summary>
 		/// Hide the error message from the UI.
 		/// </summary>
+		/// <param name="delay">Time to wait (in seconds) before hiding the error message.</param>
 		private IEnumerator HideError(float delay)
 		{
 			// Wait for the specified amount of time
@@ -126,36 +256,57 @@ namespace GeeoDemo
 		}
 		#endregion
 
-		#region Connection Display
-		// The connection display UI elements and parameters
-		[SerializeField] private Image connectionStatusImage;
-		[SerializeField] private Color connectionColor_Disconnected = new Color(1f, 0f, 0f, 0.78f);
-		[SerializeField] private Color connectionColor_Connecting = new Color(1f, 1f, 0f, 0.78f);
-		[SerializeField] private Color connectionColor_Connected = new Color(0f, 1f, 0f, 0.78f);
+		#region Status Display
+		// The status display UI elements and parameters
+		[SerializeField] private Image geeoStatusImage;
+		[SerializeField] private Image locationStatusImage;
+		[SerializeField] private Color stoppedStatusState = new Color(1f, 0f, 0f, 0.78f);
+		[SerializeField] private Color initializingStatusState = new Color(1f, 1f, 0f, 0.78f);
+		[SerializeField] private Color startedStatusState = new Color(0f, 1f, 0f, 0.78f);
 
-		// The available connection statutes
-		private enum ConnectionStatus {Disconnected, Connecting, Connected}
+		// The available statutes
+		private enum Status {Geeo, Location}
+		private enum StatusState {Stopped, Initializing, Started}
 
 		/// <summary>
-		/// Display the connection status on the UI.
+		/// Display a status on the UI.
 		/// </summary>
-		/// <param name="connectionStatus">The current connection status.</param>
-		private void DisplayConnectionStatus(ConnectionStatus connectionStatus)
+		/// <param name="status">The status to update.</param>
+		/// <param name="statusState">The status state to display.</param>
+		private void DisplayStatus(Status status, StatusState statusState)
 		{
-			// Change the connection status' UI image color depending on the current status
-			switch (connectionStatus)
+			// Get the status' UI image
+			Image statusImage;
+
+			switch (status)
 			{
-				case ConnectionStatus.Disconnected:
-				connectionStatusImage.color = connectionColor_Disconnected;
+				case Status.Geeo:
+				statusImage = geeoStatusImage;
 				break;
 
-				case ConnectionStatus.Connecting:
-				connectionStatusImage.color = connectionColor_Connecting;
+				case Status.Location:
+				statusImage = locationStatusImage;
 				break;
 
-				case ConnectionStatus.Connected:
-				connectionStatusImage.color = connectionColor_Connected;
+				default: return;
+			}
+
+			// Change the status' UI image color depending on the current status state
+			switch (statusState)
+			{
+				case StatusState.Stopped:
+				statusImage.color = stoppedStatusState;
 				break;
+
+				case StatusState.Initializing:
+				statusImage.color = initializingStatusState;
+				break;
+
+				case StatusState.Started:
+				statusImage.color = startedStatusState;
+				break;
+
+				default: return;
 			}
 		}
 		#endregion

@@ -11,7 +11,7 @@ PlayerSettings:
   useOnDemandResources: 0
   accelerometerFrequency: 60
   companyName: Geeo
-  productName: DemoMap
+  productName: GeeoDemoMap
   defaultCursor: {fileID: 0}
   cursorHotspot: {x: 0, y: 0}
   m_SplashScreenBackgroundColor: {r: 0.13333334, g: 0.17254902, b: 0.21176471, a: 1}
@@ -118,7 +118,7 @@ PlayerSettings:
     16:10: 0
     16:9: 0
     Others: 1
-  bundleIdentifier: io.geeo.demomap
+  bundleIdentifier: io.geeo.geeodemomap
   bundleVersion: 0.1
   preloadedAssets: []
   metroInputSource: 0
@@ -386,14 +386,14 @@ PlayerSettings:
   additionalIl2CppArgs: 
   m_RenderingPath: 1
   m_MobileRenderingPath: 1
-  metroPackageName: DemoMap
+  metroPackageName: GeeoDemoMap
   metroPackageVersion: 0.1.0.0
   metroCertificatePath: 
   metroCertificatePassword: 
   metroCertificateSubject: 
   metroCertificateIssuer: 
   metroCertificateNotAfter: 0000000000000000
-  metroApplicationDescription: DemoMap
+  metroApplicationDescription: GeeoDemoMap
   wsaImages: {}
   metroTileShortName: 
   metroCommandLineArgsFile: 

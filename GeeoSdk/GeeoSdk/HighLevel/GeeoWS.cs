@@ -133,9 +133,9 @@ namespace GeeoSdk
 		/// </summary>
 		private void OnWebSocketOpen()
 		{
-			Debug.Log("[GeeoWS:OnWebSocketOpen] WebSocket opened");
+			DebugLogs.LogVerbose("[GeeoWS:OnWebSocketOpen] WebSocket opened");
 
-			// TODO: OnConnected event callback
+			OnConnected();
 		}
 
 		/// <summary>
@@ -143,9 +143,9 @@ namespace GeeoSdk
 		/// </summary>
 		private void OnWebSocketClose()
 		{
-			Debug.LogWarning("[GeeoWS:OnWebSocketClose] WebSocket closed");
+			DebugLogs.LogWarning("[GeeoWS:OnWebSocketClose] WebSocket closed");
 
-			// TODO: OnDisconnected event callback
+			OnDisconnected();
 		}
 
 		/// <summary>
@@ -154,7 +154,7 @@ namespace GeeoSdk
 		/// <param name="error">The error's message.</param>
 		private void OnWebSocketError(string error)
 		{
-			Debug.LogError("[GeeoWS:OnWebSocketError] WebSocket error ›› " + error);
+			DebugLogs.LogError("[GeeoWS:OnWebSocketError] WebSocket error ›› " + error);
 
 			// TODO: OnError event callback
 		}
@@ -165,14 +165,20 @@ namespace GeeoSdk
 		/// <param name="message">The received message.</param>
 		private void OnWebSocketMessage(string message)
 		{
-			Debug.Log("[GeeoWS:OnWebSocketMessage] WebSocket message ›› " + message);
+			DebugLogs.LogVerbose("[GeeoWS:OnWebSocketMessage] WebSocket message ›› " + message);
 
 			// TODO: Treat messages >> ... events callbacks
 		}
 		#endregion
 
 		#region WebSocket Public Events
-		// TODO: public Geeo relative events: (OnPoiEntered, OnPoiLeft, etc...) + OnConnected & OnDisconnected
+		// TODO: public Geeo relative events: (OnPoiEntered, OnPoiLeft, etc...)
+
+		// Callback: the WebSocket just connected
+		public event Action OnConnected;
+
+		// Callback: the WebSocket just disconnected
+		public event Action OnDisconnected;
 		#endregion
 
 		#region Requests Handling
@@ -184,7 +190,7 @@ namespace GeeoSdk
 		/// <param name="wsToken">The WebSocket token previously provided by the Geeo server.</param>
 		public void Connect(string wsToken)
 		{
-			Debug.Log("[GeeoWS:Connect] Connecting... ›› WebSocket token: " + wsToken);
+			DebugLogs.LogVerbose("[GeeoWS:Connect] Connecting...");
 
 			// Keep the token used to connect the WebSocket
 			lastWsToken = wsToken;
@@ -205,7 +211,7 @@ namespace GeeoSdk
 		/// </summary>
 		public void Disconnect()
 		{
-			Debug.Log("[GeeoWS:Disconnect] Disconnecting...");
+			DebugLogs.LogVerbose("[GeeoWS:Disconnect] Disconnecting...");
 
 			// Unvalidate the last used WebSocket token
 			lastWsToken = null;

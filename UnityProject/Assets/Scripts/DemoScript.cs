@@ -21,7 +21,7 @@ namespace GeeoDemo
 			// Check a Geeo instance exists in the scene
 			if (Geeo.HasInstance == false)
 			{
-				LogAndDisplayError("No Geeo instance found ›› Please attach a ‘Geeo’ component on an active object of your scene!", "[DemoScript:Start]");
+				LogAndDisplayError("No Geeo instance ›› Please attach a ‘Geeo’ component on an active object of your scene!", "[DemoScript:Start]");
 				return;
 			}
 
@@ -33,15 +33,16 @@ namespace GeeoDemo
 					Debug.Log("[DemoScript:GetGuestToken] Obtained guest token ›› " + guestToken);
 
 					// Register callbacks for Geeo events
-					Geeo.Instance.ws.OnConnected += OnConnected;
-					Geeo.Instance.ws.OnDisconnected += OnDisconnected;
+					Geeo.Instance.ws.OnConnected += OnGeeoConnected;
+					Geeo.Instance.ws.OnDisconnected += OnGeeoDisconnected;
+					Geeo.Instance.ws.OnError += OnGeeoError;
 
 					// Connect to the Geeo server to start sending and receiving data
 					Geeo.Instance.ws.Connect(guestToken);
 				},
 				delegate(string errorMessage)
 				{
-					LogAndDisplayError(errorMessage, "[DemoScript:GetGuestToken]");
+					LogAndDisplayError("Geeo error: " + errorMessage, "[DemoScript:GetGuestToken]");
 					DisplayConnectionStatus(ConnectionStatus.Disconnected);
 				});
 		}
@@ -49,19 +50,27 @@ namespace GeeoDemo
 		/// <summary>
 		/// Callback: the Geeo SDK just connected.
 		/// </summary>
-		private void OnConnected()
+		private void OnGeeoConnected()
 		{
-			Debug.Log("[DemoScript:OnConnected] Geeo connected!");
+			Debug.Log("[DemoScript:OnGeeoConnected] Geeo connected!");
 			DisplayConnectionStatus(ConnectionStatus.Connected);
 		}
 
 		/// <summary>
 		/// Callback: the Geeo SDK just disconnected.
 		/// </summary>
-		private void OnDisconnected()
+		private void OnGeeoDisconnected()
 		{
-			Debug.Log("[DemoScript:OnDisconnected] Geeo disconnected!");
+			Debug.Log("[DemoScript:OnGeeoDisconnected] Geeo disconnected!");
 			DisplayConnectionStatus(ConnectionStatus.Disconnected);
+		}
+
+		/// <summary>
+		/// Callback: the Geeo SDK just encountered an error.
+		/// </summary>
+		private void OnGeeoError(string error)
+		{
+			LogAndDisplayError("Geeo error: " + error, "[DemoScript:OnGeeoError]");
 		}
 		#endregion
 

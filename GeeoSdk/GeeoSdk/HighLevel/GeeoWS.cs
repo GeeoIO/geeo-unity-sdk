@@ -55,6 +55,44 @@ namespace GeeoSdk
 		private string lastWsToken;
 
 		/// <summary>
+		/// Connect the WebSocket with a token previously provided by the Geeo server.
+		/// </summary>
+		/// <param name="wsToken">The WebSocket token provided by the Geeo server.</param>
+		private IEnumerator WebSocketConnect(string wsToken)
+		{
+			// Build the "websocket connect" request URL
+			string requestUrl = string.Format(webSocketConnect_requestUrlFormat, wsUrl, wsToken);
+			DebugLogs.LogVerbose("[GeeoWS:WebSocketConnect] Request URL: " + requestUrl);
+
+			// Wait for the connection to be established
+			yield return webSocket.Connect(requestUrl);
+
+			// Start the network check (ping)
+			webSocket.NetworkCheckStart();
+
+			webSocketConnectCoroutine = null;
+		}
+
+		/// <summary>
+		/// Close the WebSocket if it is still opened.
+		/// </summary>
+		private void WebSocketClose()
+		{
+			// Stop the connect coroutine if still running
+			if (webSocketConnectCoroutine != null)
+			{
+				Geeo.Instance.StopCoroutine(webSocketConnectCoroutine);
+				webSocketConnectCoroutine = null;
+			}
+
+			// Stop the network check (ping)
+			webSocket.NetworkCheckStop();
+
+			// Close the WebSocket
+			webSocket.Close();
+		}
+
+		/// <summary>
 		/// If the user leaves the application and this option is enabled, close the WebSocket to avoid useless data transfers.
 		/// When the user comes back, try to connect to the Geeo server again with the last used WebSocket token.
 		/// </summary>
@@ -87,44 +125,6 @@ namespace GeeoSdk
 			DebugLogs.LogWarning("[GeeoWS:OnApplicationQuit] Application quit ›› Closing connection...");
 			WebSocketClose();
 		}
-
-		/// <summary>
-		/// Close the WebSocket if it is still opened.
-		/// </summary>
-		private void WebSocketClose()
-		{
-			// Stop the connect coroutine if still running
-			if (webSocketConnectCoroutine != null)
-			{
-				Geeo.Instance.StopCoroutine(webSocketConnectCoroutine);
-				webSocketConnectCoroutine = null;
-			}
-
-			// Stop the network check (ping)
-			webSocket.NetworkCheckStop();
-
-			// Close the WebSocket
-			webSocket.Close();
-		}
-
-		/// <summary>
-		/// Connect the WebSocket with a token previously provided by the Geeo server.
-		/// </summary>
-		/// <param name="wsToken">The WebSocket token provided by the Geeo server.</param>
-		private IEnumerator WebSocketConnect(string wsToken)
-		{
-			// Build the "websocket connect" request URL
-			string requestUrl = string.Format(webSocketConnect_requestUrlFormat, wsUrl, wsToken);
-			DebugLogs.LogVerbose("[GeeoWS:WebSocketConnect] Request URL: " + requestUrl);
-
-			// Wait for the connection to be established
-			yield return webSocket.Connect(requestUrl);
-
-			// Start the network check (ping)
-			webSocket.NetworkCheckStart();
-
-			webSocketConnectCoroutine = null;
-		}
 		#endregion
 
 		#region WebSocket Internal Events
@@ -134,7 +134,6 @@ namespace GeeoSdk
 		private void OnWebSocketOpen()
 		{
 			DebugLogs.LogVerbose("[GeeoWS:OnWebSocketOpen] WebSocket opened");
-
 			OnConnected();
 		}
 
@@ -144,7 +143,6 @@ namespace GeeoSdk
 		private void OnWebSocketClose()
 		{
 			DebugLogs.LogWarning("[GeeoWS:OnWebSocketClose] WebSocket closed");
-
 			OnDisconnected();
 		}
 
@@ -155,8 +153,7 @@ namespace GeeoSdk
 		private void OnWebSocketError(string error)
 		{
 			DebugLogs.LogError("[GeeoWS:OnWebSocketError] WebSocket error ›› " + error);
-
-			// TODO: OnError event callback
+			OnError(error);
 		}
 
 		/// <summary>
@@ -172,13 +169,16 @@ namespace GeeoSdk
 		#endregion
 
 		#region WebSocket Public Events
-		// TODO: public Geeo relative events: (OnPoiEntered, OnPoiLeft, etc...)
-
 		// Callback: the WebSocket just connected
 		public event Action OnConnected;
 
 		// Callback: the WebSocket just disconnected
 		public event Action OnDisconnected;
+
+		// Callback: the WebSocket just encountered an error
+		public event Action<string> OnError;
+
+		// TODO: public Geeo relative events: (OnPoiEntered, OnPoiLeft, etc...)
 		#endregion
 
 		#region Requests Handling

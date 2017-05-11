@@ -90,3 +90,10 @@ The normal workflow looks like:
 - the client receives the token and can use it to connect to Geeo
 
 Geeo has no user database to further protect privacy.
+
+# About third party plugins
+
+The Geeo SDK and associated Unity demo project use a custom implementation based on several third party plugins:
+- **Json parser**: [LitJson](https://lbv.github.io/litjson/)
+- **WebGL platform WebSocket handling**: our customized version of [Simple Web Sockets for Unity WebGL](https://www.assetstore.unity3d.com/en/#!/content/38367)
+- **Other platforms WebSocket handling**: [STA WebSocket-Sharp](https://github.com/sta/websocket-sharp)

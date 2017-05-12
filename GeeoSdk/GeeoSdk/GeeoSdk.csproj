@@ -134,6 +134,10 @@
     <Compile Include="Internal\PlatformSpecific\WebSocket_CrossPlatform.cs" />
     <Compile Include="Internal\PlatformSpecific\WebSocket_WebGL.cs" />
     <Compile Include="HighLevel\MonoSingleton.cs" />
+    <Compile Include="HighLevel\Model\Agent.cs" />
+    <Compile Include="HighLevel\Model\Viewport.cs" />
+    <Compile Include="HighLevel\Model\AirBeacon.cs" />
+    <Compile Include="HighLevel\Model\PointOfInterest.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
@@ -156,5 +160,6 @@ if $(ConfigurationName) == Debug (
     <Folder Include="HighLevel\" />
     <Folder Include="Internal\" />
     <Folder Include="Internal\PlatformSpecific\" />
+    <Folder Include="HighLevel\Model\" />
   </ItemGroup>
 </Project>

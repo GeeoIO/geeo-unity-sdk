@@ -846,8 +846,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 37c0d5e186ad50e43bb057cf382dde54, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  userLocationUpdatesDelay: 1
   useSimulatedUserLocation: 0
   simulatedUserLocationMoveRange: 0.001
+  defaultUserLocationLatitude: 28.0479823
+  defaultUserLocationLongitude: -16.7173771
+  userViewLatitudeExtent: 0.004
+  userViewLongitudeExtent: 0.008
   errorPanel: {fileID: 1113556008}
   errorText: {fileID: 1076862461}
   errorDisplayTime_Seconds: 5

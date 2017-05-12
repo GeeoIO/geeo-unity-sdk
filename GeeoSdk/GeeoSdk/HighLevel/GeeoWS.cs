@@ -134,6 +134,12 @@ namespace GeeoSdk
 		private void OnWebSocketOpen()
 		{
 			DebugLogs.LogVerbose("[GeeoWS:OnWebSocketOpen] WebSocket opened");
+
+			// Create new agent and viewport instances
+			connectedAgent = new Agent();
+			connectedViewport = new Viewport();
+
+			// Call the OnConnected callback
 			OnConnected();
 		}
 
@@ -143,6 +149,12 @@ namespace GeeoSdk
 		private void OnWebSocketClose()
 		{
 			DebugLogs.LogWarning("[GeeoWS:OnWebSocketClose] WebSocket closed");
+
+			// Reset the agent and viewport instances
+			connectedAgent = null;
+			connectedViewport = null;
+
+			// Call the OnDisconnected callback
 			OnDisconnected();
 		}
 
@@ -153,6 +165,8 @@ namespace GeeoSdk
 		private void OnWebSocketError(string error)
 		{
 			DebugLogs.LogError("[GeeoWS:OnWebSocketError] WebSocket error ›› " + error);
+
+			// Call the OnError callback
 			OnError(error);
 		}
 
@@ -182,6 +196,18 @@ namespace GeeoSdk
 		#endregion
 
 		#region Requests Handling
+		// The Json format for a "move agent" request: { "agentPosition": [longitude, latitude] }
+		private const string moveAgent_jsonFormat = "{{\"agentPosition\":[{1},{0}]}}";
+
+		// The Json format for a "move viewport" request: { "viewPosition": [longitude1, latitude1, longitude2, latitude2] }
+		private const string moveViewport_jsonFormat = "{{\"viewPosition\":[{2},{0},{3},{1}]}}";
+
+		// The currently connected agent (a.k.a. the client using the Geeo SDK)
+		public Agent connectedAgent {get; private set;}
+
+		// The currently connected viewport (a.k.a. the view of the client using the Geeo SDK)
+		public Viewport connectedViewport {get; private set;}
+
 		/// <summary>
 		/// Use a WebSocket token previously provided by the Geeo server to open a WebSocket connection.
 		/// If development routes are allowed, you may use the GeeoHTTP.GetGuestToken() method to get a token.
@@ -224,8 +250,42 @@ namespace GeeoSdk
 			// Disconnect from the Geeo server
 			WebSocketClose();
 
-			// We unregister the OnClose listener only after the close call to get this event trigger
+			// Unregister the OnClose listener only after the close call to get this event triggered
 			webSocket.OnClose -= OnWebSocketClose;
+		}
+
+		/// <summary>
+		/// Move the currently connected agent to the specified location.
+		/// </summary>
+		/// <param name="latitude">New agent's location latitude.</param>
+		/// <param name="longitude">New agent's location longitude.</param>
+		public void MoveConnectedAgent(double latitude, double longitude)
+		{
+			// Update the local currently connected agent location
+			connectedAgent.latitude = latitude;
+			connectedAgent.longitude = longitude;
+
+			// Send a WebSocket message to the Geeo server to update the remote currently connected agent location
+			webSocket.Send(string.Format(moveAgent_jsonFormat, latitude, longitude));
+		}
+
+		/// <summary>
+		/// Move the currently connected viewport to the specified location.
+		/// </summary>
+		/// <param name="latitude1">New first viewport's latitude bound.</param>
+		/// <param name="latitude2">New second viewport's latitude bound.</param>
+		/// <param name="longitude1">New first viewport's longitude bound.</param>
+		/// <param name="longitude2">New second viewport's longitude bound.</param>
+		public void MoveConnectedViewport(double latitude1, double latitude2, double longitude1, double longitude2)
+		{
+			// Update the local currently connected agent viewport
+			connectedViewport.latitude1 = latitude1;
+			connectedViewport.latitude2 = latitude2;
+			connectedViewport.longitude1 = longitude1;
+			connectedViewport.longitude2 = longitude2;
+
+			// Send a WebSocket message to the Geeo server to update the remote currently connected viewport location
+			webSocket.Send(string.Format(moveViewport_jsonFormat, latitude1, latitude2, longitude1, longitude2));
 		}
 		#endregion
 	}

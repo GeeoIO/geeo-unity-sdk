@@ -13,23 +13,31 @@ namespace GeeoDemo
 	/// </summary>
 	public class DemoScript : MonoBehaviour
 	{
-		#region Geeo Handling
+		#region Geeo SDK Initialization
 		// The format to get an ISO 8601 DateTime string
 		private const string dateTimeFormat_Iso8601 = "yyyy-MM-ddTHH:mm:ss.fffZ";
 
 		/// <summary>
-		/// At Start, connect with the Geeo server and register as a new agent with its associated viewport.
+		/// At Start, initialize the Geeo SDK.
 		/// </summary>
 		private void Start()
+		{
+			Geeo_InitializeSdk();
+		}
+
+		/// <summary>
+		/// Connect with the Geeo server and register as a new agent with its associated viewport.
+		/// </summary>
+		private void Geeo_InitializeSdk()
 		{
 			// Check a Geeo instance exists in the scene
 			if (Geeo.HasInstance == false)
 			{
-				LogAndDisplayError("No Geeo instance ›› Please attach a ‘Geeo’ component on an active object of your scene!", "[DemoScript:Start]");
+				LogAndDisplayError("No Geeo instance ›› Please attach a ‘Geeo’ component on an active object of your scene!", "[DemoScript:Geeo_InitializeSdk]");
 				return;
 			}
 
-			Debug.Log("[DemoScript:Start] Connecting to the Geeo server...");
+			Debug.Log("[DemoScript:Geeo_InitializeSdk] Connecting to the Geeo server...");
 			DisplayStatus(Status.Geeo, StatusState.Initializing);
 
 			// Generate pseudo-random agent and viewport identifiers
@@ -40,41 +48,46 @@ namespace GeeoDemo
 			// Ask the Geeo server for a guest token (development only)
 			Geeo.Instance.http.GetGuestToken(agentId, viewportId, delegate(string guestToken)
 				{
-					Debug.Log("[DemoScript:GetGuestToken] Obtained guest token ›› " + guestToken);
+					Debug.Log("[DemoScript:Geeo_InitializeSdk] Obtained guest token ›› " + guestToken);
 
 					// Register callbacks for Geeo events
-					Geeo.Instance.ws.OnConnected += OnGeeoConnected;
-					Geeo.Instance.ws.OnDisconnected += OnGeeoDisconnected;
-					Geeo.Instance.ws.OnError += OnGeeoError;
+					Geeo.Instance.ws.OnConnected += Geeo_OnConnected;
+					Geeo.Instance.ws.OnDisconnected += Geeo_OnDisconnected;
+					Geeo.Instance.ws.OnError += Geeo_OnError;
 
 					// Connect to the Geeo server to start sending and receiving data
 					Geeo.Instance.ws.Connect(guestToken);
 				},
 				delegate(string errorMessage)
 				{
-					LogAndDisplayError("Geeo error: " + errorMessage, "[DemoScript:GetGuestToken]");
+					LogAndDisplayError("Geeo error: " + errorMessage, "[DemoScript:Geeo_InitializeSdk]");
 					DisplayStatus(Status.Geeo, StatusState.Stopped);
 				});
 		}
+		#endregion
 
+		#region Geeo SDK Events
 		/// <summary>
 		/// Callback: the Geeo SDK just connected.
 		/// </summary>
-		private void OnGeeoConnected()
+		private void Geeo_OnConnected()
 		{
-			Debug.Log("[DemoScript:OnGeeoConnected] Geeo connected ›› Starting user location: " + lastUserLocation.ToString());
+			Debug.Log("[DemoScript:Geeo_OnConnected] Geeo connected ›› Starting user location: " + lastUserLocation.ToString());
 			DisplayStatus(Status.Geeo, StatusState.Started);
 
-			// Start the location service to get the user location
-			runningUserLocationUpdateCoroutine = StartCoroutine(StartUserLocationUpdate());
+			// To get started, send a move with the default user location
+			Geeo_Move(lastUserLocation);
+
+			// Start the location service to get the user location (or use the simulated user location if enabled)
+			runningUserLocationUpdateCoroutine = StartCoroutine(useSimulatedUserLocation ? StartSimulatedUserLocationUpdate() : StartUserLocationUpdate());
 		}
 
 		/// <summary>
 		/// Callback: the Geeo SDK just disconnected.
 		/// </summary>
-		private void OnGeeoDisconnected()
+		private void Geeo_OnDisconnected()
 		{
-			Debug.LogWarning("[DemoScript:OnGeeoDisconnected] Geeo disconnected");
+			Debug.LogWarning("[DemoScript:Geeo_OnDisconnected] Geeo disconnected");
 			DisplayStatus(Status.Geeo, StatusState.Stopped);
 
 			// Stop the location service (no need to get the user location anymore)
@@ -85,9 +98,20 @@ namespace GeeoDemo
 		/// Callback: the Geeo SDK just encountered an error.
 		/// </summary>
 		/// <param name="error">The error message.</param>
-		private void OnGeeoError(string error)
+		private void Geeo_OnError(string error)
 		{
-			LogAndDisplayError("Geeo error: " + error, "[DemoScript:OnGeeoError]");
+			LogAndDisplayError("Geeo error: " + error, "[DemoScript:Geeo_OnError]");
+		}
+		#endregion
+
+		#region Geeo SDK Requests
+		/// <summary>
+		/// Update the Geeo's connected agent location.
+		/// </summary>
+		/// <param name="currentAgentLocation">The new last known agent location.</param>
+		private void Geeo_Move(UserLocation currentAgentLocation)
+		{
+			// TODO: Just do it!
 		}
 		#endregion
 
@@ -120,6 +144,12 @@ namespace GeeoDemo
 			}
 		}
 
+		// If continuous user locations should be simulated instead of using the location service
+		[SerializeField] private bool useSimulatedUserLocation = false;
+
+		// The range of maximum allowed simulated moves on latitude and longitude per update
+		[SerializeField] private float simulatedUserLocationMoveRange = 0.001f;
+
 		// The last user location obtained from the location service
 		// If no user location can be obtained from the location service, let's say you're in Tenerife by default
 		private UserLocation lastUserLocation = new UserLocation(28.04798f, -16.71737f);
@@ -128,13 +158,37 @@ namespace GeeoDemo
 		private Coroutine runningUserLocationUpdateCoroutine;
 
 		// Time to wait (in seconds) between each location service initialization check
-		private const float locationServiceInitChecksDelay = 0.05f;
+		private const float locationServiceInitChecksDelay = 1f;
 
 		// Time to wait (in seconds) between each update of the user location from the location service
 		private const float locationServiceUserLocationUpdatesDelay = 1f;
 
 		/// <summary>
-		/// Start continuously querying user location.
+		/// Start updating the current user location with simulated moves.
+		/// </summary>
+		private IEnumerator StartSimulatedUserLocationUpdate()
+		{
+			Debug.Log("[DemoScript:StartSimulatedUserLocationUpdate] Simulated user location moves started");
+			DisplayStatus(Status.Location, StatusState.Started);
+
+			// Continuously simulate user location moves with some delay between each move
+			while (true)
+			{
+				// Wait for a certain delay before the next query
+				yield return new WaitForSeconds(locationServiceUserLocationUpdatesDelay);
+
+				// Update the last user Location data
+				lastUserLocation.latitude += UnityEngine.Random.Range(-simulatedUserLocationMoveRange, simulatedUserLocationMoveRange);
+				lastUserLocation.longitude += UnityEngine.Random.Range(-simulatedUserLocationMoveRange, simulatedUserLocationMoveRange);
+				Debug.Log("[DemoScript:StartSimulatedUserLocationUpdate] Last user location: " + lastUserLocation.ToString());
+
+				// Send a move to update the Geeo's user location
+				Geeo_Move(lastUserLocation);
+			}
+		}
+
+		/// <summary>
+		/// Start continuously querying the current user location to the device location service.
 		/// </summary>
 		private IEnumerator StartUserLocationUpdate()
 		{
@@ -174,11 +228,16 @@ namespace GeeoDemo
 				// Continuously query user location with some delay between each query
 				while (true)
 				{
+					// Wait for a certain delay before the next query
 					yield return new WaitForSeconds(locationServiceUserLocationUpdatesDelay);
 
+					// Update the last user Location data
 					lastUserLocation.latitude = Input.location.lastData.latitude;
 					lastUserLocation.longitude = Input.location.lastData.longitude;
 					Debug.Log("[DemoScript:StartUserLocationUpdate] Last user location: " + lastUserLocation.ToString());
+
+					// Send a move to update the Geeo's user location
+					Geeo_Move(lastUserLocation);
 				}
 			}
 		}
@@ -203,7 +262,7 @@ namespace GeeoDemo
 		}
 		#endregion
 
-		#region Error Display
+		#region Error UI Display
 		// The error display UI elements and parameters
 		[SerializeField] private GameObject errorPanel;
 		[SerializeField] private Text errorText;
@@ -256,7 +315,7 @@ namespace GeeoDemo
 		}
 		#endregion
 
-		#region Status Display
+		#region Status UI Display
 		// The status display UI elements and parameters
 		[SerializeField] private Image geeoStatusImage;
 		[SerializeField] private Image locationStatusImage;

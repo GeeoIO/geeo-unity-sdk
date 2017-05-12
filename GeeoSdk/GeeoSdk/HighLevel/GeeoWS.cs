@@ -178,7 +178,7 @@ namespace GeeoSdk
 		// Callback: the WebSocket just encountered an error
 		public event Action<string> OnError;
 
-		// TODO: public Geeo relative events: (OnPoiEntered, OnPoiLeft, etc...)
+		// TODO: Public Geeo relative events: (OnPoiEntered, OnPoiLeft, etc...)
 		#endregion
 
 		#region Requests Handling

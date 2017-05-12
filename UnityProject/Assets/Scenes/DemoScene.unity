@@ -372,10 +372,6 @@ Prefab:
       propertyPath: m_RootOrder
       value: 1
       objectReference: {fileID: 0}
-    - target: {fileID: 1522798642772608, guid: aa0dd154f7d7c1f45a6b54a5a1bc3b29, type: 2}
-      propertyPath: m_IsActive
-      value: 1
-      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_ParentPrefab: {fileID: 100100000, guid: aa0dd154f7d7c1f45a6b54a5a1bc3b29, type: 2}
   m_IsPrefabParent: 0
@@ -850,6 +846,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 37c0d5e186ad50e43bb057cf382dde54, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  useSimulatedUserLocation: 0
+  simulatedUserLocationMoveRange: 0.001
   errorPanel: {fileID: 1113556008}
   errorText: {fileID: 1076862461}
   errorDisplayTime_Seconds: 5

@@ -26,10 +26,16 @@ namespace GeeoDemo
 		/// </summary>
 		private void Start()
 		{
-			// Set the default user location and view
-			lastUserLocation = new UserLocation(defaultUserLocationLatitude, defaultUserLocationLongitude);
-			lastUserView = new UserView(defaultUserLocationLatitude - userViewLatitudeExtent, defaultUserLocationLatitude + userViewLatitudeExtent,
-				defaultUserLocationLongitude - userViewLongitudeExtent, defaultUserLocationLongitude + userViewLongitudeExtent);
+			// Set the default user location and view in allowed GPS bounds
+			lastUserLocation = new UserLocation(Math.Min(Math.Max(defaultUserLocationLatitude, latitudeMin), latitudeMax),
+				Math.Min(Math.Max(defaultUserLocationLongitude, longitudeMin), longitudeMax),
+				userLocationDisplayPointPrefab, displayMap.transform);
+
+			lastUserView = new UserView(Math.Min(Math.Max(defaultUserLocationLatitude - userViewLatitudeExtent, latitudeMin), latitudeMax),
+				Math.Min(Math.Max(defaultUserLocationLatitude + userViewLatitudeExtent, latitudeMin), latitudeMax),
+				Math.Min(Math.Max(defaultUserLocationLongitude - userViewLongitudeExtent, longitudeMin), longitudeMax),
+				Math.Min(Math.Max(defaultUserLocationLongitude + userViewLongitudeExtent, longitudeMin), longitudeMax),
+				lastUserLocation.displayPoint);
 
 			// Initialize the Geeo SDK
 			Geeo_InitializeSdk();
@@ -85,6 +91,9 @@ namespace GeeoDemo
 			Debug.Log("[DemoScript:Geeo_OnConnected] Geeo connected ›› Starting user location: " + lastUserLocation + ", Starting user view: " + lastUserView);
 			DisplayStatus(Status.Geeo, StatusState.Started);
 
+			// Show the displayed used location
+			DisplayUserLocation(true);
+
 			// To get started, send a move with the default user location and view
 			Geeo_MoveConnectedAgent(lastUserLocation);
 			Geeo_MoveConnectedViewport(lastUserView);
@@ -100,6 +109,9 @@ namespace GeeoDemo
 		{
 			Debug.LogWarning("[DemoScript:Geeo_OnDisconnected] Geeo disconnected");
 			DisplayStatus(Status.Geeo, StatusState.Stopped);
+
+			// Hide the displayed used location
+			DisplayUserLocation(false);
 
 			// Stop the location service (no need to get the user location anymore)
 			StopUserLocationUpdate();
@@ -145,15 +157,22 @@ namespace GeeoDemo
 			public double latitude;
 			public double longitude;
 
+			// User location's display point object
+			public GameObject displayPoint;
+
 			/// <summary>
 			/// Class constructor.
 			/// </summary>
 			/// <param name="_latitude">User's location latitude.</param>
 			/// <param name="_longitude">User's location longitude.</param>
-			public UserLocation(double _latitude, double _longitude)
+			/// <param name="_displayPointPrefab">Prefab of user's display point.</param>
+			/// <param name="_displayMap">User's display point map parent.</param>
+			public UserLocation(double _latitude, double _longitude, GameObject _displayPointPrefab, Transform _displayMap)
 			{
 				latitude = _latitude;
 				longitude = _longitude;
+				displayPoint = Instantiate(_displayPointPrefab, _displayMap, false);
+				displayPoint.SetActive(false);
 			}
 
 			/// <summary>
@@ -177,6 +196,9 @@ namespace GeeoDemo
 			public double longitude1;
 			public double longitude2;
 
+			// User view's display LineRender instance
+			public LineRenderer displayLines;
+
 			/// <summary>
 			/// Class constructor.
 			/// </summary>
@@ -184,12 +206,14 @@ namespace GeeoDemo
 			/// <param name="_latitude2">Second user's view latitude bound.</param>
 			/// <param name="_longitude1">First user's view longitude bound.</param>
 			/// <param name="_longitude2">Second user's view longitude bound.</param>
-			public UserView(double _latitude1, double _latitude2, double _longitude1, double _longitude2)
+			/// <param name="_displayPoint">User's display point reference.</param>
+			public UserView(double _latitude1, double _latitude2, double _longitude1, double _longitude2, GameObject _displayPoint)
 			{
 				latitude1 = _latitude1;
 				latitude2 = _latitude2;
 				longitude1 = _longitude1;
 				longitude2 = _longitude2;
+				displayLines = _displayPoint.GetComponent<LineRenderer>();
 			}
 
 			/// <summary>
@@ -205,6 +229,12 @@ namespace GeeoDemo
 		// Time to wait (in seconds) between each location service initialization check
 		private const float locationServiceInitChecksDelay = 1f;
 
+		// GPS coordinates constants
+		private const double latitudeMin = -85.05112878d;
+		private const double latitudeMax = 85.05112878d;
+		private const double longitudeMin = -180d;
+		private const double longitudeMax = 180d;
+
 		// Time to wait (in seconds) between each update of the user location from the location service
 		[SerializeField] private float userLocationUpdatesDelay = 1f;
 
@@ -212,15 +242,15 @@ namespace GeeoDemo
 		[SerializeField] private bool useSimulatedUserLocation = false;
 
 		// The range of maximum allowed simulated moves on latitude and longitude per update
-		[SerializeField] private float simulatedUserLocationMoveRange = 0.001f;
+		[SerializeField] private float simulatedUserLocationMoveRange = 1f;
 
 		// As long as no user location can be obtained from the location service, let's say you're in Tenerife by default
 		[SerializeField] private double defaultUserLocationLatitude = 28.0479823d;
 		[SerializeField] private double defaultUserLocationLongitude = -16.7173771d;
 
 		// How much latitude/longitude to add/subtract to user's location to get its view bounds
-		[SerializeField] private double userViewLatitudeExtent = 0.004f;
-		[SerializeField] private double userViewLongitudeExtent = 0.008f;
+		[SerializeField] private double userViewLatitudeExtent = 10f;
+		[SerializeField] private double userViewLongitudeExtent = 20f;
 
 		// The last user location obtained from the location service
 		private UserLocation lastUserLocation;
@@ -245,14 +275,17 @@ namespace GeeoDemo
 				// Wait for a certain delay before the next query
 				yield return new WaitForSeconds(userLocationUpdatesDelay);
 
-				// Update the last user location and view data
-				lastUserLocation.latitude += (double)UnityEngine.Random.Range(-simulatedUserLocationMoveRange, simulatedUserLocationMoveRange);
-				lastUserLocation.longitude += (double)UnityEngine.Random.Range(-simulatedUserLocationMoveRange, simulatedUserLocationMoveRange);
-				lastUserView.latitude1 = lastUserLocation.latitude - userViewLatitudeExtent;
-				lastUserView.latitude2 = lastUserLocation.latitude + userViewLatitudeExtent;
-				lastUserView.longitude1 = lastUserLocation.longitude - userViewLongitudeExtent;
-				lastUserView.longitude2 = lastUserLocation.longitude + userViewLongitudeExtent;
+				// Update the last user location and view data in allowed GPS bounds
+				lastUserLocation.latitude = Math.Min(Math.Max(lastUserLocation.latitude + (double)UnityEngine.Random.Range(-simulatedUserLocationMoveRange, simulatedUserLocationMoveRange), latitudeMin), latitudeMax);
+				lastUserLocation.longitude = Math.Min(Math.Max(lastUserLocation.longitude + (double)UnityEngine.Random.Range(-simulatedUserLocationMoveRange, simulatedUserLocationMoveRange), longitudeMin), longitudeMax);
+				lastUserView.latitude1 = Math.Min(Math.Max(lastUserLocation.latitude - userViewLatitudeExtent, latitudeMin), latitudeMax);
+				lastUserView.latitude2 = Math.Min(Math.Max(lastUserLocation.latitude + userViewLatitudeExtent, latitudeMin), latitudeMax);
+				lastUserView.longitude1 = Math.Min(Math.Max(lastUserLocation.longitude - userViewLongitudeExtent, longitudeMin), longitudeMax);
+				lastUserView.longitude2 = Math.Min(Math.Max(lastUserLocation.longitude + userViewLongitudeExtent, longitudeMin), longitudeMax);
 				Debug.Log("[DemoScript:StartSimulatedUserLocationUpdate] Last user location: " + lastUserLocation + ", Last user view: " + lastUserView);
+
+				// Display the new user's location and view
+				DisplayUserLocation(true);
 
 				// Send a move to update the Geeo's user location and view
 				Geeo_MoveConnectedAgent(lastUserLocation);
@@ -304,14 +337,17 @@ namespace GeeoDemo
 					// Wait for a certain delay before the next query
 					yield return new WaitForSeconds(userLocationUpdatesDelay);
 
-					// Update the last user location and view data
+					// Update the last user location and view data in allowed GPS bounds
 					lastUserLocation.latitude = (double)Input.location.lastData.latitude;
 					lastUserLocation.longitude = (double)Input.location.lastData.longitude;
-					lastUserView.latitude1 = lastUserLocation.latitude - userViewLatitudeExtent;
-					lastUserView.latitude2 = lastUserLocation.latitude + userViewLatitudeExtent;
-					lastUserView.longitude1 = lastUserLocation.longitude - userViewLongitudeExtent;
-					lastUserView.longitude2 = lastUserLocation.longitude + userViewLongitudeExtent;
+					lastUserView.latitude1 = Math.Min(Math.Max(lastUserLocation.latitude - userViewLatitudeExtent, latitudeMin), latitudeMax);
+					lastUserView.latitude2 = Math.Min(Math.Max(lastUserLocation.latitude + userViewLatitudeExtent, latitudeMin), latitudeMax);
+					lastUserView.longitude1 = Math.Min(Math.Max(lastUserLocation.longitude - userViewLongitudeExtent, longitudeMin), longitudeMax);
+					lastUserView.longitude2 = Math.Min(Math.Max(lastUserLocation.longitude + userViewLongitudeExtent, longitudeMin), longitudeMax);
 					Debug.Log("[DemoScript:StartUserLocationUpdate] Last user location: " + lastUserLocation + ", Last user view: " + lastUserView);
+
+					// Display the new user's location and view
+					DisplayUserLocation(true);
 
 					// Send a move to update the Geeo's user location and view
 					Geeo_MoveConnectedAgent(lastUserLocation);
@@ -343,8 +379,98 @@ namespace GeeoDemo
 
 			DisplayStatus(Status.Location, StatusState.Stopped);
 		}
+		#endregion
 
-		// TODO: Display Geeo.Instance.ws.connectedAgent location and Geeo.Instance.ws.connectedViewport bounds on the scene
+		#region User Location And View Display
+		// Default depth of user's view display lines
+		private const float userViewDisplayLinesDefaultZ = -1f;
+
+		// If the camera must follow the displayed user location
+		[SerializeField] private bool userLocationCameraFollowing = true;
+
+		// The main camera
+		[SerializeField] private Camera mainCamera;
+
+		// The map on which to display Geeo data
+		[SerializeField] private GameObject displayMap;
+		[SerializeField] private double displayMapSize = 1024d;
+
+		// The object representing the current user's location
+		[SerializeField] private GameObject userLocationDisplayPointPrefab;
+
+		/// <summary>
+		/// Display the current user's location point and view bounds.
+		/// </summary>
+		/// <param name="display">If the user location should be displayed or hidden.</param>
+		private void DisplayUserLocation(bool display)
+		{
+			// If the user location should be displayed, display it and update its position
+			if (display)
+			{
+				// Show the user location point
+				lastUserLocation.displayPoint.SetActive(true);
+
+				// Calculate the new user location point's position by converting GPS coordinates to X/Y ones
+				float userLocationX, userLocationY;
+				LatitudeLongitudeToXY(-lastUserLocation.latitude, lastUserLocation.longitude, out userLocationX, out userLocationY);
+				lastUserLocation.displayPoint.transform.localPosition = new Vector3(userLocationX, userLocationY, lastUserLocation.displayPoint.transform.localPosition.z);
+
+				// Calculate the new user view lines' positions by converting GPS coordinates to X/Y ones
+				float userViewX1, userViewX2, userViewY1, userViewY2;
+				LatitudeLongitudeToXY(-lastUserView.latitude1, lastUserView.longitude1, out userViewX1, out userViewY1);
+				LatitudeLongitudeToXY(-lastUserView.latitude2, lastUserView.longitude2, out userViewX2, out userViewY2);
+				lastUserView.displayLines.SetPositions(new [] {
+					new Vector3(userViewX1, userViewY1, userViewDisplayLinesDefaultZ),
+					new Vector3(userViewX2, userViewY1, userViewDisplayLinesDefaultZ),
+					new Vector3(userViewX2, userViewY2, userViewDisplayLinesDefaultZ),
+					new Vector3(userViewX1, userViewY2, userViewDisplayLinesDefaultZ),
+					new Vector3(userViewX1, userViewY1, userViewDisplayLinesDefaultZ)
+				});
+
+				// If enabled, set camera's position on top of the new user location
+				if (userLocationCameraFollowing)
+					mainCamera.transform.position = new Vector3(lastUserLocation.displayPoint.transform.position.x, lastUserLocation.displayPoint.transform.position.y, mainCamera.transform.position.z);
+			}
+			// If the user location should be hidden and is displayed, hide it
+			else
+				lastUserLocation.displayPoint.SetActive(false);
+		}
+
+		/// <summary>
+		/// Convert WGS 84 coordinates to X/Y flat ones (GPS to squared map).
+		/// </summary>
+		/// <param name="latitude">The input latitude coordinate.</param>
+		/// <param name="longitude">The input longitude coordinate.</param>
+		/// <param name="x">The output x coordinate.</param>
+		/// <param name="y">The output y coordinate.</param>
+		private void LatitudeLongitudeToXY(double latitude, double longitude, out float x, out float y)
+		{
+			latitude = Math.Min(Math.Max(latitude, latitudeMin), latitudeMax);
+			longitude = Math.Min(Math.Max(longitude, longitudeMin), longitudeMax);
+
+			double tmpX = (longitude + 180d) / 360d;
+			double latitudeSin = Math.Sin(latitude * Math.PI / 180d);
+			double tmpY = 0.5d - (Math.Log((1d + latitudeSin) / (1d - latitudeSin)) / (4d * Math.PI));
+
+			x = (float)Math.Min(Math.Max((tmpX * displayMapSize) + 0.5d, 0d), displayMapSize - 1d);
+			y = (float)Math.Min(Math.Max((tmpY * displayMapSize) + 0.5d, 0d), displayMapSize - 1d);
+		}
+
+		/// <summary>
+		/// Convert X/Y flat coordinates to WGS 84 ones (squared map to GPS).
+		/// </summary>
+		/// <param name="x">The input x coordinate.</param>
+		/// <param name="y">The input y coordinate.</param>
+		/// <param name="latitude">The output latitude coordinate.</param>
+		/// <param name="longitude">The output longitude coordinate.</param>
+		private void XYToLatitudeLongitude(float x, float y, out double latitude, out double longitude)
+		{
+			double tmpX = (Math.Min(Math.Max((double)x, 0d), displayMapSize - 1d) / displayMapSize) - 0.5d;
+			double tmpY = 0.5d - (Math.Min(Math.Max((double)y, 0d), displayMapSize - 1d) / displayMapSize);
+
+			latitude = 90d - 360d * Math.Atan(Math.Exp(-tmpY * 2d * Math.PI)) / Math.PI;
+			longitude = 360d * tmpX;
+		}
 		#endregion
 
 		#region Error UI Display

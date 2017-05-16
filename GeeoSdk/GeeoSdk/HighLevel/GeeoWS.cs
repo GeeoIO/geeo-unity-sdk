@@ -209,11 +209,11 @@ namespace GeeoSdk
 		public Viewport connectedViewport {get; private set;}
 
 		/// <summary>
-		/// Use a WebSocket token previously provided by the Geeo server to open a WebSocket connection.
+		/// Use a JWT WebSocket token previously provided by the Geeo server to open a WebSocket connection.
 		/// If development routes are allowed, you may use the GeeoHTTP.GetGuestToken() method to get a token.
 		/// Once the connection is opened, the OnConnected event will be triggered (so you should register a callback to it).
 		/// </summary>
-		/// <param name="wsToken">The WebSocket token previously provided by the Geeo server.</param>
+		/// <param name="wsToken">The JWT WebSocket token previously provided by the Geeo server.</param>
 		public void Connect(string wsToken)
 		{
 			DebugLogs.LogVerbose("[GeeoWS:Connect] Connecting...");

@@ -5,6 +5,13 @@
 	/// </summary>
 	public sealed class AirBeacon
 	{
-
+		/// <summary>
+		/// Converts the value of this instance to its equivalent string representation.
+		/// {}
+		/// </summary>
+		public override string ToString()
+		{
+			return string.Format ("{{}}");
+		}
 	}
 }

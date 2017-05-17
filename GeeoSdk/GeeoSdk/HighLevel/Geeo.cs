@@ -18,8 +18,14 @@ namespace GeeoSdk
 		[SerializeField] private bool wsDisconnectOnApplicationPause = true;
 
 		#region Public
-		// The HTTP and WebSocket networking modules
+		/// <summary>
+		/// The Geeo SDK's HTTP networking module instance.
+		/// </summary>
 		public GeeoHTTP http;
+
+		/// <summary>
+		/// The Geeo SDK's WebSocket networking module instance.
+		/// </summary>
 		public GeeoWS ws;
 		#endregion
 

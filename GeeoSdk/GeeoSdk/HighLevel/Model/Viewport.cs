@@ -5,10 +5,24 @@
 	/// </summary>
 	public sealed class Viewport
 	{
-		// Viewport's coordinates
+		/// <summary>
+		/// Viewport's first latitude.
+		/// </summary>
 		public double latitude1;
+
+		/// <summary>
+		/// Viewport's second latitude.
+		/// </summary>
 		public double latitude2;
+
+		/// <summary>
+		/// Viewport's first longitude.
+		/// </summary>
 		public double longitude1;
+
+		/// <summary>
+		/// Viewport's second longitude.
+		/// </summary>
 		public double longitude2;
 
 		/// <summary>

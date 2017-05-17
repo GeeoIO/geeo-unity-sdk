@@ -7,14 +7,24 @@ namespace GeeoSdk
 	/// </summary>
 	public sealed class Agent
 	{
-		// Agent's identifier
+		/// <summary>
+		/// Agent's identifier.
+		/// </summary>
 		public string id;
 
-		// Agent's coordinates
+		/// <summary>
+		/// Agent's latitude.
+		/// </summary>
 		public double latitude;
+
+		/// <summary>
+		/// Agent's longitude.
+		/// </summary>
 		public double longitude;
 
-		// Agent's public data
+		/// <summary>
+		/// Agent's public data.
+		/// </summary>
 		public JsonData publicData;
 
 		/// <summary>

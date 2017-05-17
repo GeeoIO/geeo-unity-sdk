@@ -57,7 +57,7 @@ namespace GeeoDemo
 				Math.Min(Math.Max(defaultUserLocationLongitude - userViewLongitudeExtent, longitudeMin), longitudeMax),
 				Math.Min(Math.Max(defaultUserLocationLongitude + userViewLongitudeExtent, longitudeMin), longitudeMax),
 				lastUserLocation.displayPoint);
-
+			
 			// Ask the Geeo server for a guest token (development only)
 			Geeo.Instance.http.GetGuestToken(currentAgentId, currentViewportId, delegate(string guestToken)
 				{

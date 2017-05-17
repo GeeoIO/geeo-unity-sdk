@@ -8,19 +8,29 @@ namespace GeeoSdk
 	internal sealed class AgentJson
 	{
 		#pragma warning disable 0649
-		// Agent's identifier
+		/// <summary>
+		/// Agent's identifier.
+		/// </summary>
 		public string agent_id;
 
-		// Agent's position: [longitude, latitude]
+		/// <summary>
+		/// Agent's position. (0: longitude, 1: latitude)
+		/// </summary>
 		public double[] pos;
 
-		// If the agent just entered the viewport
+		/// <summary>
+		/// If the agent just entered the viewport.
+		/// </summary>
 		public bool entered;
 
-		// If the agent just left the viewport
+		/// <summary>
+		/// If the agent just left the viewport.
+		/// </summary>
 		public bool left;
 
-		// Additional agent's public data
+		/// <summary>
+		/// Agent's additional public data.
+		/// </summary>
 		public JsonData publicData;
 		#pragma warning restore 0649
 

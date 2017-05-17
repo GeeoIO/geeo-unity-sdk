@@ -272,36 +272,57 @@ namespace GeeoSdk
 		#endregion
 
 		#region WebSocket Public Events
-		// Callback: the WebSocket connected
+		/// <summary>
+		/// Callback: the WebSocket connected.
+		/// </summary>
 		public event Action OnConnected;
 
-		// Callback: the WebSocket disconnected
+		/// <summary>
+		/// Callback: the WebSocket disconnected.
+		/// </summary>
 		public event Action OnDisconnected;
 
-		// Callback: an error has been encountered
+		/// <summary>
+		/// Callback: an error has been encountered.
+		/// </summary>
 		public event Action<string> OnError;
 
-		// Callback: an agent entered the viewport
+		/// <summary>
+		/// Callback: an agent entered the viewport.
+		/// </summary>
 		public event Action<Agent> OnAgentEntered;
 
-		// Callback: an agent left the viewport
+		/// <summary>
+		/// Callback: an agent left the viewport.
+		/// </summary>
 		public event Action<Agent> OnAgentLeft;
 
-		// Callback: an agent moved in the viewport
+		/// <summary>
+		/// Callback: an agent moved in the viewport.
+		/// </summary>
 		public event Action<Agent> OnAgentMoved;
 		#endregion
 
 		#region Geeo Data
-		// The currently connected agent (a.k.a. the current client using the Geeo SDK)
+		/// <summary>
+		/// The currently connected agent (a.k.a. the current client using the Geeo SDK).
+		/// </summary>
 		public Agent connectedAgent {get; private set;}
 
-		// The currently connected viewport (a.k.a. the view of the current client using the Geeo SDK)
+		/// <summary>
+		/// The currently connected viewport (a.k.a. the view of the current client using the Geeo SDK).
+		/// </summary>
 		public Viewport connectedViewport {get; private set;}
 
 		// Complete list of all agents currently present in the connected viewport (including the connected agent)
 		private Dictionary<string, Agent> agents = new Dictionary<string, Agent>();
+
+		/// <summary>
+		/// Complete list of all agents currently present in the connected viewport (including the connected agent).
+		/// </summary>
 		public List<Agent> Agents
 		{
+			// Build a new list from the existing one to avoid external editing, then returns it
 			get
 			{
 				List<Agent> agentsList = new List<Agent>();

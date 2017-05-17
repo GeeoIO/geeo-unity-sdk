@@ -2,8 +2,31 @@
 
 namespace GeeoSdk
 {
-	// Enum of available cumulative logging levels
-	public enum LogLevel { None, Error, Warning, Verbose }
+	/// <summary>
+	/// Enum of available cumulative logging levels.
+	/// </summary>
+	public enum LogLevel
+	{
+		/// <summary>
+		/// Log no message.
+		/// </summary>
+		None,
+
+		/// <summary>
+		/// Log only error messages.
+		/// </summary>
+		Error,
+
+		/// <summary>
+		/// Log only error and warning messages.
+		/// </summary>
+		Warning,
+
+		/// <summary>
+		/// Log all messages (error, warning, verbose).
+		/// </summary>
+		Verbose
+	}
 
 	/// <summary>
 	/// Methods to handle console logs.

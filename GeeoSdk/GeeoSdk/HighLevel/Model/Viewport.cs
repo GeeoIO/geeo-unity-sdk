@@ -17,7 +17,7 @@
 		/// </summary>
 		public override string ToString()
 		{
-			return string.Format ("{{ La1: {0}, La2: {1}, Lo1: {2}, Lo2: {3} }}", latitude1, latitude2, longitude1, longitude2);
+			return string.Format("{{ La1: {0}, La2: {1}, Lo1: {2}, Lo2: {3} }}", latitude1, latitude2, longitude1, longitude2);
 		}
 	}
 }

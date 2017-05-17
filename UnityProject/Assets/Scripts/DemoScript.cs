@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -14,29 +15,14 @@ namespace GeeoDemo
 	public class DemoScript : MonoBehaviour
 	{
 		#region Geeo SDK Initialization
-		// The format to get an ISO 8601 DateTime string
+		// Format to get an ISO 8601 DateTime string
 		private const string dateTimeFormat_Iso8601 = "yyyy-MM-ddTHH:mm:ss.fffZ";
 
-		// Currently connected Geeo agent and viewport identifiers
-		private string currentAgentId;
-		private string currentViewportId;
-
 		/// <summary>
-		/// At Start, set default user location and view, then initialize the Geeo SDK.
+		/// At Start, initialize the Geeo SDK.
 		/// </summary>
 		private void Start()
 		{
-			// Set the default user location and view in allowed GPS bounds
-			lastUserLocation = new UserLocation(Math.Min(Math.Max(defaultUserLocationLatitude, latitudeMin), latitudeMax),
-				Math.Min(Math.Max(defaultUserLocationLongitude, longitudeMin), longitudeMax),
-				userLocationDisplayPointPrefab, displayMap.transform);
-
-			lastUserView = new UserView(Math.Min(Math.Max(defaultUserLocationLatitude - userViewLatitudeExtent, latitudeMin), latitudeMax),
-				Math.Min(Math.Max(defaultUserLocationLatitude + userViewLatitudeExtent, latitudeMin), latitudeMax),
-				Math.Min(Math.Max(defaultUserLocationLongitude - userViewLongitudeExtent, longitudeMin), longitudeMax),
-				Math.Min(Math.Max(defaultUserLocationLongitude + userViewLongitudeExtent, longitudeMin), longitudeMax),
-				lastUserLocation.displayPoint);
-
 			// Initialize the Geeo SDK
 			Geeo_InitializeSdk();
 		}
@@ -58,8 +44,19 @@ namespace GeeoDemo
 
 			// Generate pseudo-random agent and viewport identifiers
 			string currentDateTime = DateTime.UtcNow.ToString(dateTimeFormat_Iso8601);
-			currentAgentId = "agent" + currentDateTime;
-			currentViewportId = "view" + currentDateTime;
+			string currentAgentId = "agent" + currentDateTime;
+			string currentViewportId = "view" + currentDateTime;
+
+			// Set the default user location and view in allowed GPS bounds
+			lastUserLocation = new UserLocation(currentAgentId, Math.Min(Math.Max(defaultUserLocationLatitude, latitudeMin), latitudeMax),
+				Math.Min(Math.Max(defaultUserLocationLongitude, longitudeMin), longitudeMax),
+				userLocationDisplayPointPrefab, displayMap.transform);
+
+			lastUserView = new UserView(currentViewportId, Math.Min(Math.Max(defaultUserLocationLatitude - userViewLatitudeExtent, latitudeMin), latitudeMax),
+				Math.Min(Math.Max(defaultUserLocationLatitude + userViewLatitudeExtent, latitudeMin), latitudeMax),
+				Math.Min(Math.Max(defaultUserLocationLongitude - userViewLongitudeExtent, longitudeMin), longitudeMax),
+				Math.Min(Math.Max(defaultUserLocationLongitude + userViewLongitudeExtent, longitudeMin), longitudeMax),
+				lastUserLocation.displayPoint);
 
 			// Ask the Geeo server for a guest token (development only)
 			Geeo.Instance.http.GetGuestToken(currentAgentId, currentViewportId, delegate(string guestToken)
@@ -70,6 +67,9 @@ namespace GeeoDemo
 					Geeo.Instance.ws.OnConnected += Geeo_OnConnected;
 					Geeo.Instance.ws.OnDisconnected += Geeo_OnDisconnected;
 					Geeo.Instance.ws.OnError += Geeo_OnError;
+					Geeo.Instance.ws.OnAgentEntered += Geeo_OnAgentEntered;
+					Geeo.Instance.ws.OnAgentLeft += Geeo_OnAgentLeft;
+					Geeo.Instance.ws.OnAgentMoved += Geeo_OnAgentMoved;
 
 					// Connect to the Geeo server to start sending and receiving data
 					Geeo.Instance.ws.Connect(guestToken);
@@ -113,6 +113,15 @@ namespace GeeoDemo
 			// Hide the displayed used location
 			DisplayUserLocation(false);
 
+			// Hide and remove all the agents locations from the list
+			foreach (KeyValuePair<string, UserLocation> agentLocation in agentsLocations)
+			{
+				DisplayAgentLocation(agentLocation.Value, false);
+				Destroy(agentLocation.Value.displayPoint);
+			}
+
+			agentsLocations.Clear();
+
 			// Stop the location service (no need to get the user location anymore)
 			StopUserLocationUpdate();
 		}
@@ -124,6 +133,53 @@ namespace GeeoDemo
 		private void Geeo_OnError(string error)
 		{
 			LogAndDisplayError("Geeo error: " + error, "[DemoScript:Geeo_OnError]");
+		}
+
+		/// <summary>
+		/// Callback: a Geeo agent just entered the current user view.
+		/// </summary>
+		/// <param name="agent">The actual agent.</param>
+		private void Geeo_OnAgentEntered(Agent agent)
+		{
+			// If the agent doesn't exist in the agents list and is not the current user, add it then display it
+			if ((agent.id != lastUserLocation.id) && !agentsLocations.ContainsKey(agent.id))
+			{
+				UserLocation agentLocation = new UserLocation(agent.id, agent.latitude, agent.longitude, agentLocationDisplayPointPrefab, displayMap.transform);
+				agentsLocations.Add(agent.id, agentLocation);
+				DisplayAgentLocation(agentLocation, true);
+			}
+		}
+
+		/// <summary>
+		/// Callback: a Geeo agent just left the current user view.
+		/// </summary>
+		/// <param name="agent">The actual agent.</param>
+		private void Geeo_OnAgentLeft(Agent agent)
+		{
+			// If the agent exists in the agents list, remove it from the list and hide/destroy it
+			if (agentsLocations.ContainsKey(agent.id))
+			{
+				UserLocation agentLocation = agentsLocations[agent.id];
+				agentsLocations.Remove(agent.id);
+				DisplayAgentLocation(agentLocation, false);
+				Destroy(agentLocation.displayPoint);
+			}
+		}
+
+		/// <summary>
+		/// Callback: a Geeo agent just moved in the current user view.
+		/// </summary>
+		/// <param name="agent">The actual agent.</param>
+		private void Geeo_OnAgentMoved(Agent agent)
+		{
+			// If the agent exists in the agents list, update its data then display it
+			if (agentsLocations.ContainsKey(agent.id))
+			{
+				UserLocation agentLocation = agentsLocations[agent.id];
+				agentLocation.latitude = agent.latitude;
+				agentLocation.longitude = agent.longitude;
+				DisplayAgentLocation(agentLocation, true);
+			}
 		}
 		#endregion
 
@@ -153,6 +209,9 @@ namespace GeeoDemo
 		/// </summary>
 		private class UserLocation
 		{
+			// User location's identifier
+			public string id;
+
 			// User location's coordinates
 			public double latitude;
 			public double longitude;
@@ -163,12 +222,14 @@ namespace GeeoDemo
 			/// <summary>
 			/// Class constructor.
 			/// </summary>
+			/// <param name="_id">User's location identifier.</param>
 			/// <param name="_latitude">User's location latitude.</param>
 			/// <param name="_longitude">User's location longitude.</param>
 			/// <param name="_displayPointPrefab">Prefab of user's display point.</param>
 			/// <param name="_displayMap">User's display point map parent.</param>
-			public UserLocation(double _latitude, double _longitude, GameObject _displayPointPrefab, Transform _displayMap)
+			public UserLocation(string _id, double _latitude, double _longitude, GameObject _displayPointPrefab, Transform _displayMap)
 			{
+				id = _id;
 				latitude = _latitude;
 				longitude = _longitude;
 				displayPoint = Instantiate(_displayPointPrefab, _displayMap, false);
@@ -177,11 +238,11 @@ namespace GeeoDemo
 
 			/// <summary>
 			/// Converts the value of this instance to its equivalent string representation.
-			/// {latitude, longitude}
+			/// {id, latitude, longitude}
 			/// </summary>
 			public override string ToString()
 			{
-				return string.Format ("{{ La: {0}, Lo: {1} }}", latitude, longitude);
+				return string.Format("{{ Id: {0}, La: {1}, Lo: {2} }}", id, latitude, longitude);
 			}
 		}
 
@@ -190,6 +251,9 @@ namespace GeeoDemo
 		/// </summary>
 		private class UserView
 		{
+			// User view's identifier
+			public string id;
+
 			// User view's coordinates
 			public double latitude1;
 			public double latitude2;
@@ -202,13 +266,15 @@ namespace GeeoDemo
 			/// <summary>
 			/// Class constructor.
 			/// </summary>
+			/// <param name="_id">User's view identifier.</param>
 			/// <param name="_latitude1">First user's view latitude bound.</param>
 			/// <param name="_latitude2">Second user's view latitude bound.</param>
 			/// <param name="_longitude1">First user's view longitude bound.</param>
 			/// <param name="_longitude2">Second user's view longitude bound.</param>
 			/// <param name="_displayPoint">User's display point reference.</param>
-			public UserView(double _latitude1, double _latitude2, double _longitude1, double _longitude2, GameObject _displayPoint)
+			public UserView(string _id, double _latitude1, double _latitude2, double _longitude1, double _longitude2, GameObject _displayPoint)
 			{
+				id = _id;
 				latitude1 = _latitude1;
 				latitude2 = _latitude2;
 				longitude1 = _longitude1;
@@ -218,11 +284,11 @@ namespace GeeoDemo
 
 			/// <summary>
 			/// Converts the value of this instance to its equivalent string representation.
-			/// {latitude1, latitude2, longitude1, longitude2}
+			/// {id, latitude1, latitude2, longitude1, longitude2}
 			/// </summary>
 			public override string ToString()
 			{
-				return string.Format ("{{ La1: {0}, La2: {1}, Lo1: {2}, Lo2: {3} }}", latitude1, latitude2, longitude1, longitude2);
+				return string.Format("{{ Id: {0}, La1: {1}, La2: {2}, Lo1: {3}, Lo2: {4} }}", id, latitude1, latitude2, longitude1, longitude2);
 			}
 		}
 
@@ -241,7 +307,7 @@ namespace GeeoDemo
 		// If continuous user locations should be simulated instead of using the location service
 		[SerializeField] private bool useSimulatedUserLocation = false;
 
-		// The range of maximum allowed simulated moves on latitude and longitude per update
+		// Range of maximum allowed simulated moves on latitude and longitude per update
 		[SerializeField] private float simulatedUserLocationMoveRange = 1f;
 
 		// As long as no user location can be obtained from the location service, let's say you're in Tenerife by default
@@ -249,6 +315,7 @@ namespace GeeoDemo
 		[SerializeField] private double defaultUserLocationLongitude = -16.7173771d;
 
 		// How much latitude/longitude to add/subtract to user's location to get its view bounds
+		// TODO: Replace by X/Y extents to avoid vertical view square distortion caused by latitude variations
 		[SerializeField] private double userViewLatitudeExtent = 10f;
 		[SerializeField] private double userViewLongitudeExtent = 20f;
 
@@ -395,25 +462,22 @@ namespace GeeoDemo
 		[SerializeField] private GameObject displayMap;
 		[SerializeField] private double displayMapSize = 1024d;
 
-		// The object representing the current user's location
+		// The object prefab representing the current user's location
 		[SerializeField] private GameObject userLocationDisplayPointPrefab;
 
 		/// <summary>
 		/// Display the current user's location point and view bounds.
 		/// </summary>
 		/// <param name="display">If the user location should be displayed or hidden.</param>
-		private void DisplayUserLocation(bool display)
+		private void DisplayUserLocation(bool display = true)
 		{
 			// If the user location should be displayed, display it and update its position
 			if (display)
 			{
-				// Show the user location point
-				lastUserLocation.displayPoint.SetActive(true);
-
 				// Calculate the new user location point's position by converting GPS coordinates to X/Y ones
 				float userLocationX, userLocationY;
 				LatitudeLongitudeToXY(-lastUserLocation.latitude, lastUserLocation.longitude, out userLocationX, out userLocationY);
-				lastUserLocation.displayPoint.transform.localPosition = new Vector3(userLocationX, userLocationY, lastUserLocation.displayPoint.transform.localPosition.z);
+				lastUserLocation.displayPoint.transform.position = new Vector3(userLocationX, userLocationY, lastUserLocation.displayPoint.transform.localPosition.z);
 
 				// Calculate the new user view lines' positions by converting GPS coordinates to X/Y ones
 				float userViewX1, userViewX2, userViewY1, userViewY2;
@@ -430,9 +494,13 @@ namespace GeeoDemo
 				// If enabled, set camera's position on top of the new user location
 				if (userLocationCameraFollowing)
 					mainCamera.transform.position = new Vector3(lastUserLocation.displayPoint.transform.position.x, lastUserLocation.displayPoint.transform.position.y, mainCamera.transform.position.z);
+				
+				// Show the user location point
+				if (!lastUserLocation.displayPoint.activeSelf)
+					lastUserLocation.displayPoint.SetActive(true);
 			}
-			// If the user location should be hidden and is displayed, hide it
-			else
+			// If the user location should be hidden, hide it
+			else if (lastUserLocation.displayPoint.activeSelf)
 				lastUserLocation.displayPoint.SetActive(false);
 		}
 
@@ -473,8 +541,40 @@ namespace GeeoDemo
 		}
 		#endregion
 
+		#region Agents Location Display
+		// The object prefab representing the other agents locations
+		[SerializeField] private GameObject agentLocationDisplayPointPrefab;
+
+		// List of the other agents locations
+		private Dictionary<string, UserLocation> agentsLocations = new Dictionary<string, UserLocation>();
+
+		/// <summary>
+		/// Display an agent's location point.
+		/// </summary>
+		/// <param name="agentLocation">The agent's location to display or hide.</param>
+		/// <param name="display">If the agent location should be displayed or hidden.</param>
+		private void DisplayAgentLocation(UserLocation agentLocation, bool display = true)
+		{
+			// If the agent location should be displayed, display it and update its position
+			if (display)
+			{
+				// Calculate the new agent location point's position by converting GPS coordinates to X/Y ones
+				float agentLocationX, agentLocationY;
+				LatitudeLongitudeToXY(-agentLocation.latitude, agentLocation.longitude, out agentLocationX, out agentLocationY);
+				agentLocation.displayPoint.transform.position = new Vector3(agentLocationX, agentLocationY, agentLocation.displayPoint.transform.localPosition.z);
+
+				// Show the agent location point
+				if (!agentLocation.displayPoint.activeSelf)
+					agentLocation.displayPoint.SetActive(true);
+			}
+			// If the agent location should be hidden, hide it
+			else if (agentLocation.displayPoint.activeSelf)
+				agentLocation.displayPoint.SetActive(false);
+		}
+		#endregion
+
 		#region Error UI Display
-		// The error display UI elements and parameters
+		// Error display UI elements and parameters
 		[SerializeField] private GameObject errorPanel;
 		[SerializeField] private Text errorText;
 		[SerializeField] private float errorDisplayTime_Seconds = 5f;

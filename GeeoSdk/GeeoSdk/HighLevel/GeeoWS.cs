@@ -3,6 +3,8 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+using LitJson;
+
 namespace GeeoSdk
 {
 	/// <summary>
@@ -135,7 +137,7 @@ namespace GeeoSdk
 		{
 			DebugLogs.LogVerbose("[GeeoWS:OnWebSocketOpen] WebSocket opened");
 
-			// Create new agent and viewport instances
+			// Create new Geeo Data instances
 			connectedAgent = new Agent();
 			connectedViewport = new Viewport();
 
@@ -150,9 +152,10 @@ namespace GeeoSdk
 		{
 			DebugLogs.LogWarning("[GeeoWS:OnWebSocketClose] WebSocket closed");
 
-			// Reset the agent and viewport instances
+			// Reset the Geeo Data instances
 			connectedAgent = null;
 			connectedViewport = null;
+			agents.Clear();
 
 			// Call the OnDisconnected callback
 			OnDisconnected();
@@ -178,21 +181,137 @@ namespace GeeoSdk
 		{
 			DebugLogs.LogVerbose("[GeeoWS:OnWebSocketMessage] WebSocket message ›› " + message);
 
-			// TODO: Treat messages >> ... events callbacks
+			// Parse Json data from the received WebSocket message from the Geeo server
+			JsonData messageJson = JsonMapper.ToObject(message);
+
+			// TODO: Check if messageJson is an error object
+
+			// Identify each "event" of the array from the message
+			foreach (JsonData messageEvent in messageJson)
+			{
+				// Event type: agent data
+				if (messageEvent.Keys.Contains("agent_id"))
+					WebSocketMessage_AgentEvent(JsonMapper.ToObject<AgentJson>(messageEvent.ToJson()));
+			}
+		}
+		#endregion
+
+		#region WebSocket Messages Handling
+		/// <summary>
+		/// Handle an "agent" type received WebSocket message from the Geeo server to update the agents list.
+		/// </summary>
+		/// <param name="agentData">Received message data about an agent.</param>
+		private void WebSocketMessage_AgentEvent(AgentJson agentData)
+		{
+			// If the agent just entered the viewport
+			if (agentData.entered)
+			{
+				// Ensure the agent doesn't exist yet in the agents list
+				if (agents.ContainsKey(agentData.agent_id))
+				{
+					DebugLogs.LogError("[GeeoWS:WebSocketMessage_AgentEvent] A new agent entered the viewport ›› Agent identifier ‘" + agentData.agent_id + "’ already exists");
+					OnError("A new agent entered the viewport ›› Agent identifier ‘" + agentData.agent_id + "’ already exists");
+					return;
+				}
+
+				// Create a new Agent instance and fill its data from the received message
+				Agent agent = new Agent();
+				agent.id = agentData.agent_id;
+				agent.latitude = agentData.pos[1];
+				agent.longitude = agentData.pos[0];
+				agent.publicData = agentData.publicData;
+				
+				// Add the new agent to the agents list
+				agents.Add(agentData.agent_id, agent);
+
+				// Trigger the "agent just entered the viewport" event callback
+				OnAgentEntered(agent);
+			}
+			// If the agent just left the viewport
+			else if (agentData.left)
+			{
+				// Ensure the agent does exist in the agents list
+				if (!agents.ContainsKey(agentData.agent_id))
+				{
+					DebugLogs.LogError("[GeeoWS:WebSocketMessage_AgentEvent] An agent left the viewport ›› Agent identifier ‘" + agentData.agent_id + "’ does not exist");
+					OnError("An agent left the viewport ›› Agent identifier ‘" + agentData.agent_id + "’ does not exist");
+					return;
+				}
+
+				// Get the agent corresponding to its identifier for the agents list
+				Agent agent = agents[agentData.agent_id];
+
+				// Remove the agent from the agents list
+				agents.Remove(agentData.agent_id);
+
+				// Trigger the "agent just left the viewport" event callback
+				OnAgentLeft(agent);
+			}
+			// If the agent just moved in the viewport
+			else
+			{
+				// Ensure the agent does exist in the agents list
+				if (!agents.ContainsKey(agentData.agent_id))
+				{
+					DebugLogs.LogError("[GeeoWS:WebSocketMessage_AgentEvent] An agent moved in the viewport ›› Agent identifier ‘" + agentData.agent_id + "’ does not exist");
+					OnError("An agent moved in the viewport ›› Agent identifier ‘" + agentData.agent_id + "’ does not exist");
+					return;
+				}
+
+				// Get the agent corresponding to its identifier for the agents list
+				Agent agent = agents[agentData.agent_id];
+
+				// Update agent's data from the received message
+				agent.latitude = agentData.pos[1];
+				agent.longitude = agentData.pos[0];
+
+				// Trigger the "agent just moved in the viewport" event callback
+				OnAgentMoved(agent);
+			}
 		}
 		#endregion
 
 		#region WebSocket Public Events
-		// Callback: the WebSocket just connected
+		// Callback: the WebSocket connected
 		public event Action OnConnected;
 
-		// Callback: the WebSocket just disconnected
+		// Callback: the WebSocket disconnected
 		public event Action OnDisconnected;
 
-		// Callback: the WebSocket just encountered an error
+		// Callback: an error has been encountered
 		public event Action<string> OnError;
 
-		// TODO: Public Geeo relative events: (OnPoiEntered, OnPoiLeft, etc...)
+		// Callback: an agent entered the viewport
+		public event Action<Agent> OnAgentEntered;
+
+		// Callback: an agent left the viewport
+		public event Action<Agent> OnAgentLeft;
+
+		// Callback: an agent moved in the viewport
+		public event Action<Agent> OnAgentMoved;
+		#endregion
+
+		#region Geeo Data
+		// The currently connected agent (a.k.a. the current client using the Geeo SDK)
+		public Agent connectedAgent {get; private set;}
+
+		// The currently connected viewport (a.k.a. the view of the current client using the Geeo SDK)
+		public Viewport connectedViewport {get; private set;}
+
+		// Complete list of all agents currently present in the connected viewport (including the connected agent)
+		private Dictionary<string, Agent> agents = new Dictionary<string, Agent>();
+		public List<Agent> Agents
+		{
+			get
+			{
+				List<Agent> agentsList = new List<Agent>();
+
+				foreach (KeyValuePair<string, Agent> agent in agents)
+					agentsList.Add(agent.Value);
+
+				return agentsList;
+			}
+		}
 		#endregion
 
 		#region Requests Handling
@@ -201,12 +320,6 @@ namespace GeeoSdk
 
 		// The Json format for a "move viewport" request: { "viewPosition": [longitude1, latitude1, longitude2, latitude2] }
 		private const string moveViewport_jsonFormat = "{{\"viewPosition\":[{2},{0},{3},{1}]}}";
-
-		// The currently connected agent (a.k.a. the client using the Geeo SDK)
-		public Agent connectedAgent {get; private set;}
-
-		// The currently connected viewport (a.k.a. the view of the client using the Geeo SDK)
-		public Viewport connectedViewport {get; private set;}
 
 		/// <summary>
 		/// Use a JWT WebSocket token previously provided by the Geeo server to open a WebSocket connection.
@@ -257,35 +370,35 @@ namespace GeeoSdk
 		/// <summary>
 		/// Move the currently connected agent to the specified location.
 		/// </summary>
-		/// <param name="latitude">New agent's location latitude.</param>
-		/// <param name="longitude">New agent's location longitude.</param>
-		public void MoveConnectedAgent(double latitude, double longitude)
+		/// <param name="newLatitude">New agent's location latitude.</param>
+		/// <param name="newLongitude">New agent's location longitude.</param>
+		public void MoveConnectedAgent(double newLatitude, double newLongitude)
 		{
 			// Update the local currently connected agent location
-			connectedAgent.latitude = latitude;
-			connectedAgent.longitude = longitude;
+			connectedAgent.latitude = newLatitude;
+			connectedAgent.longitude = newLongitude;
 
 			// Send a WebSocket message to the Geeo server to update the remote currently connected agent location
-			webSocket.Send(string.Format(moveAgent_jsonFormat, latitude, longitude));
+			webSocket.Send(string.Format(moveAgent_jsonFormat, newLatitude, newLongitude));
 		}
 
 		/// <summary>
 		/// Move the currently connected viewport to the specified location.
 		/// </summary>
-		/// <param name="latitude1">New first viewport's latitude bound.</param>
-		/// <param name="latitude2">New second viewport's latitude bound.</param>
-		/// <param name="longitude1">New first viewport's longitude bound.</param>
-		/// <param name="longitude2">New second viewport's longitude bound.</param>
-		public void MoveConnectedViewport(double latitude1, double latitude2, double longitude1, double longitude2)
+		/// <param name="newLatitude1">New first viewport's latitude bound.</param>
+		/// <param name="newLatitude2">New second viewport's latitude bound.</param>
+		/// <param name="newLongitude1">New first viewport's longitude bound.</param>
+		/// <param name="newLongitude2">New second viewport's longitude bound.</param>
+		public void MoveConnectedViewport(double newLatitude1, double newLatitude2, double newLongitude1, double newLongitude2)
 		{
 			// Update the local currently connected agent viewport
-			connectedViewport.latitude1 = latitude1;
-			connectedViewport.latitude2 = latitude2;
-			connectedViewport.longitude1 = longitude1;
-			connectedViewport.longitude2 = longitude2;
+			connectedViewport.latitude1 = newLatitude1;
+			connectedViewport.latitude2 = newLatitude2;
+			connectedViewport.longitude1 = newLongitude1;
+			connectedViewport.longitude2 = newLongitude2;
 
 			// Send a WebSocket message to the Geeo server to update the remote currently connected viewport location
-			webSocket.Send(string.Format(moveViewport_jsonFormat, latitude1, latitude2, longitude1, longitude2));
+			webSocket.Send(string.Format(moveViewport_jsonFormat, newLatitude1, newLatitude2, newLongitude1, newLongitude2));
 		}
 		#endregion
 	}

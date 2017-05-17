@@ -317,8 +317,8 @@ namespace GeeoDemo
 
 		// How much latitude/longitude to add/subtract to user's location to get its view bounds
 		// TODO: Replace by X/Y extents to avoid vertical view square distortion caused by latitude variations
-		[SerializeField] [Range((float)latitudeMin, (float)latitudeMax)] private double userViewLatitudeExtent = 10f;
-		[SerializeField] [Range((float)longitudeMin, (float)longitudeMax)] private double userViewLongitudeExtent = 20f;
+		[SerializeField] [Range(0.0000001f, (float)latitudeMax)] private double userViewLatitudeExtent = 10f;
+		[SerializeField] [Range(0.0000001f, (float)longitudeMax)] private double userViewLongitudeExtent = 20f;
 
 		// The last user location obtained from the location service
 		private UserLocation lastUserLocation;

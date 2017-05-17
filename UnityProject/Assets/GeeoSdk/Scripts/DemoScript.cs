@@ -233,8 +233,8 @@ namespace GeeoDemo
 				latitude = _latitude;
 				longitude = _longitude;
 				displayPoint = Instantiate(_displayPointPrefab, _displayMap, false);
+				displayPoint.GetComponentInChildren<TextMesh>().text = _id;
 				displayPoint.SetActive(false);
-				// TODO: Display identifier on top of the point
 			}
 
 			/// <summary>

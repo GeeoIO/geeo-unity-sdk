@@ -923,7 +923,7 @@ MonoBehaviour:
   displayMapSize: 1024
   userLocationDisplayPointPrefab: {fileID: 1965978134217118, guid: ddfad5da645e866438da60303a6a42c8,
     type: 2}
-  agentLocationDisplayPointPrefab: {fileID: 1965978134217118, guid: c5285b6a875ad5247ae9bc5db9da756c,
+  agentLocationDisplayPointPrefab: {fileID: 1620864052558968, guid: c5285b6a875ad5247ae9bc5db9da756c,
     type: 2}
   errorPanel: {fileID: 1113556008}
   errorText: {fileID: 1076862461}

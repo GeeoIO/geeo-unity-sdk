@@ -913,8 +913,8 @@ MonoBehaviour:
   userLocationUpdatesDelay: 1
   useSimulatedUserLocation: 1
   simulatedUserLocationMoveRange: 1
-  defaultUserLocationLatitude: 28.0479823
-  defaultUserLocationLongitude: -16.7173771
+  defaultUserLocationLatitude: 28.047983169555664
+  defaultUserLocationLongitude: -16.71738052368164
   userViewLatitudeExtent: 10
   userViewLongitudeExtent: 20
   userLocationCameraFollowing: 1

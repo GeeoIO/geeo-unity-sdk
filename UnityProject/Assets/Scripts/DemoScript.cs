@@ -308,16 +308,16 @@ namespace GeeoDemo
 		[SerializeField] private bool useSimulatedUserLocation = false;
 
 		// Range of maximum allowed simulated moves on latitude and longitude per update
-		[SerializeField] private float simulatedUserLocationMoveRange = 1f;
+		[SerializeField] [Range(0f, (float)latitudeMax)] private float simulatedUserLocationMoveRange = 1f;
 
 		// As long as no user location can be obtained from the location service, let's say you're in Tenerife by default
-		[SerializeField] private double defaultUserLocationLatitude = 28.0479823d;
-		[SerializeField] private double defaultUserLocationLongitude = -16.7173771d;
+		[SerializeField] [Range((float)latitudeMin, (float)latitudeMax)] private double defaultUserLocationLatitude = 28.0479823d;
+		[SerializeField] [Range((float)longitudeMin, (float)longitudeMax)] private double defaultUserLocationLongitude = -16.7173771d;
 
 		// How much latitude/longitude to add/subtract to user's location to get its view bounds
 		// TODO: Replace by X/Y extents to avoid vertical view square distortion caused by latitude variations
-		[SerializeField] private double userViewLatitudeExtent = 10f;
-		[SerializeField] private double userViewLongitudeExtent = 20f;
+		[SerializeField] [Range((float)latitudeMin, (float)latitudeMax)] private double userViewLatitudeExtent = 10f;
+		[SerializeField] [Range((float)longitudeMin, (float)longitudeMax)] private double userViewLongitudeExtent = 20f;
 
 		// The last user location obtained from the location service
 		private UserLocation lastUserLocation;

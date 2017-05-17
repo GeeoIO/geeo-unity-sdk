@@ -234,6 +234,7 @@ namespace GeeoDemo
 				longitude = _longitude;
 				displayPoint = Instantiate(_displayPointPrefab, _displayMap, false);
 				displayPoint.SetActive(false);
+				// TODO: Display identifier on top of the point
 			}
 
 			/// <summary>

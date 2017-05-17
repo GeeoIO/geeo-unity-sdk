@@ -141,8 +141,8 @@ namespace GeeoSdk
 			connectedAgent = new Agent();
 			connectedViewport = new Viewport();
 
-			// Call the OnConnected callback
-			OnConnected();
+			// Trigger the OnConnected event if any callback registered to it
+			if (OnConnected != null) { OnConnected(); }
 		}
 
 		/// <summary>
@@ -157,8 +157,8 @@ namespace GeeoSdk
 			connectedViewport = null;
 			agents.Clear();
 
-			// Call the OnDisconnected callback
-			OnDisconnected();
+			// Trigger the OnDisconnected event if any callback registered to it
+			if (OnDisconnected != null) { OnDisconnected(); }
 		}
 
 		/// <summary>
@@ -169,8 +169,8 @@ namespace GeeoSdk
 		{
 			DebugLogs.LogError("[GeeoWS:OnWebSocketError] WebSocket error ›› " + error);
 
-			// Call the OnError callback
-			OnError(error);
+			// Trigger the OnError event if any callback registered to it
+			if (OnError != null) { OnError(error); }
 		}
 
 		/// <summary>
@@ -184,24 +184,50 @@ namespace GeeoSdk
 			// Parse Json data from the received WebSocket message from the Geeo server
 			JsonData messageJson = JsonMapper.ToObject(message);
 
-			// TODO: Check if messageJson is an error object
-
-			// Identify each "event" of the array from the message
-			foreach (JsonData messageEvent in messageJson)
+			// Check if messageJson is an "error" type object
+			if (messageJson.IsObject)
+				WebSocketMessage_ErrorReport(JsonMapper.ToObject<ErrorJson>(message));
+			// Check if messageJson is an "view update" type array
+			else if (messageJson.IsArray)
 			{
-				// Event type: agent data
-				if (messageEvent.Keys.Contains("agent_id"))
-					WebSocketMessage_AgentEvent(JsonMapper.ToObject<AgentJson>(messageEvent.ToJson()));
+				// Identify each "update" of the array from the "view update" message
+				foreach (JsonData messageUpdate in messageJson)
+				{
+					// Update type: agent data
+					if (messageUpdate.Keys.Contains("agent_id"))
+						WebSocketMessage_AgentUpdate(JsonMapper.ToObject<AgentJson>(messageUpdate.ToJson()));
+				}
+
+				// Trigger the OnViewUpdated event if any callback registered to it
+				if (OnViewUpdated != null) { OnViewUpdated(); }
 			}
 		}
 		#endregion
 
 		#region WebSocket Messages Handling
 		/// <summary>
-		/// Handle an "agent" type received WebSocket message from the Geeo server to update the agents list.
+		/// Handle an "error report" type received WebSocket message from the Geeo server to report an error.
+		/// </summary>
+		/// <param name="errorData">Received message data about an error.</param>
+		private void WebSocketMessage_ErrorReport(ErrorJson errorData)
+		{
+			DebugLogs.LogError("[GeeoWS:WebSocketMessage_ErrorReport] Server error: " + errorData);
+
+			// Trigger the OnError event if any callback registered to it
+			if (OnError != null)
+			{
+				if (errorData.message != null)
+					OnError(errorData.error + " ›› " + errorData.message);
+				else
+					OnError(errorData.error);
+			}
+		}
+
+		/// <summary>
+		/// Handle an "agent update" type received WebSocket message from the Geeo server to update the agents list.
 		/// </summary>
 		/// <param name="agentData">Received message data about an agent.</param>
-		private void WebSocketMessage_AgentEvent(AgentJson agentData)
+		private void WebSocketMessage_AgentUpdate(AgentJson agentData)
 		{
 			// If the agent just entered the viewport
 			if (agentData.entered)
@@ -209,8 +235,8 @@ namespace GeeoSdk
 				// Ensure the agent doesn't exist yet in the agents list
 				if (agents.ContainsKey(agentData.agent_id))
 				{
-					DebugLogs.LogError("[GeeoWS:WebSocketMessage_AgentEvent] A new agent entered the viewport ›› Agent identifier ‘" + agentData.agent_id + "’ already exists");
-					OnError("A new agent entered the viewport ›› Agent identifier ‘" + agentData.agent_id + "’ already exists");
+					DebugLogs.LogError("[GeeoWS:WebSocketMessage_AgentUpdate] A new agent entered the viewport ›› Agent identifier ‘" + agentData.agent_id + "’ already exists");
+					if (OnError != null) { OnError("A new agent entered the viewport ›› Agent identifier ‘" + agentData.agent_id + "’ already exists"); }
 					return;
 				}
 
@@ -224,8 +250,8 @@ namespace GeeoSdk
 				// Add the new agent to the agents list
 				agents.Add(agentData.agent_id, agent);
 
-				// Trigger the "agent just entered the viewport" event callback
-				OnAgentEntered(agent);
+				// Trigger the OnAgentEntered event if any callback registered to it
+				if (OnAgentEntered != null) { OnAgentEntered(agent); }
 			}
 			// If the agent just left the viewport
 			else if (agentData.left)
@@ -233,8 +259,8 @@ namespace GeeoSdk
 				// Ensure the agent does exist in the agents list
 				if (!agents.ContainsKey(agentData.agent_id))
 				{
-					DebugLogs.LogError("[GeeoWS:WebSocketMessage_AgentEvent] An agent left the viewport ›› Agent identifier ‘" + agentData.agent_id + "’ does not exist");
-					OnError("An agent left the viewport ›› Agent identifier ‘" + agentData.agent_id + "’ does not exist");
+					DebugLogs.LogError("[GeeoWS:WebSocketMessage_AgentUpdate] An agent left the viewport ›› Agent identifier ‘" + agentData.agent_id + "’ does not exist");
+					if (OnError != null) { OnError("An agent left the viewport ›› Agent identifier ‘" + agentData.agent_id + "’ does not exist"); }
 					return;
 				}
 
@@ -244,8 +270,8 @@ namespace GeeoSdk
 				// Remove the agent from the agents list
 				agents.Remove(agentData.agent_id);
 
-				// Trigger the "agent just left the viewport" event callback
-				OnAgentLeft(agent);
+				// Trigger the OnAgentLeft event if any callback registered to it
+				if (OnAgentLeft != null) { OnAgentLeft(agent); }
 			}
 			// If the agent just moved in the viewport
 			else
@@ -253,8 +279,8 @@ namespace GeeoSdk
 				// Ensure the agent does exist in the agents list
 				if (!agents.ContainsKey(agentData.agent_id))
 				{
-					DebugLogs.LogError("[GeeoWS:WebSocketMessage_AgentEvent] An agent moved in the viewport ›› Agent identifier ‘" + agentData.agent_id + "’ does not exist");
-					OnError("An agent moved in the viewport ›› Agent identifier ‘" + agentData.agent_id + "’ does not exist");
+					DebugLogs.LogError("[GeeoWS:WebSocketMessage_AgentUpdate] An agent moved in the viewport ›› Agent identifier ‘" + agentData.agent_id + "’ does not exist");
+					if (OnError != null) { OnError("An agent moved in the viewport ›› Agent identifier ‘" + agentData.agent_id + "’ does not exist"); }
 					return;
 				}
 
@@ -265,8 +291,8 @@ namespace GeeoSdk
 				agent.latitude = agentData.pos[1];
 				agent.longitude = agentData.pos[0];
 
-				// Trigger the "agent just moved in the viewport" event callback
-				OnAgentMoved(agent);
+				// Trigger the OnAgentMoved event if any callback registered to it
+				if (OnAgentMoved != null) { OnAgentMoved(agent); }
 			}
 		}
 		#endregion
@@ -301,6 +327,12 @@ namespace GeeoSdk
 		/// Callback: an agent moved in the viewport.
 		/// </summary>
 		public event Action<Agent> OnAgentMoved;
+
+		/// <summary>
+		/// Callback: the view has been updated with fresh data (updated agents and points of interest).
+		/// This is the right moment to call Agents and PointsOfInterest getters.
+		/// </summary>
+		public event Action OnViewUpdated;
 		#endregion
 
 		#region Geeo Data
@@ -319,10 +351,11 @@ namespace GeeoSdk
 
 		/// <summary>
 		/// Complete list of all agents currently present in the connected viewport (including the connected agent).
+		/// The best moment to call this getter should be when an OnViewUpdated event is triggered.
 		/// </summary>
 		public List<Agent> Agents
 		{
-			// Build a new list from the existing one to avoid external editing, then returns it
+			// Build a new list from the existing one to avoid external editing, then return it
 			get
 			{
 				List<Agent> agentsList = new List<Agent>();

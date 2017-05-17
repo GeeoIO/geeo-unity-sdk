@@ -3,7 +3,7 @@
 namespace GeeoSdk
 {
 	/// <summary>
-	/// Represents a Json "agent" type WebSocket message.
+	/// Represents a Json "agent update" type WebSocket message.
 	/// </summary>
 	internal sealed class AgentJson
 	{

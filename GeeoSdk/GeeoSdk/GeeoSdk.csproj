@@ -136,7 +136,6 @@
     <Compile Include="HighLevel\MonoSingleton.cs" />
     <Compile Include="HighLevel\Model\Agent.cs" />
     <Compile Include="HighLevel\Model\Viewport.cs" />
-    <Compile Include="HighLevel\Model\AirBeacon.cs" />
     <Compile Include="HighLevel\Model\PointOfInterest.cs" />
     <Compile Include="Internal\JsonModel\AgentJson.cs" />
     <Compile Include="Internal\JsonModel\ErrorJson.cs" />

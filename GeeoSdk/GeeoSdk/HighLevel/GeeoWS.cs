@@ -156,6 +156,7 @@ namespace GeeoSdk
 			connectedAgent = null;
 			connectedViewport = null;
 			agents.Clear();
+			pointsOfInterest.Clear();
 
 			// Trigger the OnDisconnected event if any callback registered to it
 			if (OnDisconnected != null) { OnDisconnected(); }

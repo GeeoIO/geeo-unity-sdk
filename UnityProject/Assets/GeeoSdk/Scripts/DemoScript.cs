@@ -70,6 +70,8 @@ namespace GeeoDemo
 					Geeo.Instance.ws.OnAgentEntered += Geeo_OnAgentEntered;
 					Geeo.Instance.ws.OnAgentLeft += Geeo_OnAgentLeft;
 					Geeo.Instance.ws.OnAgentMoved += Geeo_OnAgentMoved;
+					Geeo.Instance.ws.OnPointOfInterestEntered += Geeo_OnPointOfInterestEntered;
+					Geeo.Instance.ws.OnPointOfInterestLeft += Geeo_OnPointOfInterestLeft;
 
 					// Connect to the Geeo server to start sending and receiving data
 					Geeo.Instance.ws.Connect(guestToken);
@@ -113,6 +115,9 @@ namespace GeeoDemo
 			// Hide the displayed used location
 			DisplayUserLocation(false);
 
+			// Stop the location service (no need to get the user location anymore)
+			StopUserLocationUpdate();
+
 			// Hide and remove all the agents locations from the list
 			foreach (KeyValuePair<string, AgentLocation> agentLocation in agentsLocations)
 			{
@@ -122,8 +127,14 @@ namespace GeeoDemo
 
 			agentsLocations.Clear();
 
-			// Stop the location service (no need to get the user location anymore)
-			StopUserLocationUpdate();
+			// Hide and remove all the points of interest locations from the list
+			foreach (KeyValuePair<string, PointOfInterestLocation> pointOfInterestLocations in pointsOfInterestLocations)
+			{
+				DisplayPointOfInterestLocation(pointOfInterestLocations.Value, false);
+				Destroy(pointOfInterestLocations.Value.displayPoint);
+			}
+
+			pointsOfInterestLocations.Clear();
 		}
 
 		/// <summary>
@@ -179,6 +190,37 @@ namespace GeeoDemo
 				agentLocation.latitude = agent.latitude;
 				agentLocation.longitude = agent.longitude;
 				DisplayAgentLocation(agentLocation, true);
+			}
+		}
+
+		/// <summary>
+		/// Callback: a Geeo point of interest just entered the current user view.
+		/// </summary>
+		/// <param name="pointOfInterest">The actual point of interest.</param>
+		private void Geeo_OnPointOfInterestEntered(PointOfInterest pointOfInterest)
+		{
+			// If the point of interest doesn't exist in the points of interest list and is not the current user, add it then display it
+			if ((pointOfInterest.id != lastUserLocation.id) && !pointsOfInterestLocations.ContainsKey(pointOfInterest.id))
+			{
+				PointOfInterestLocation pointOfInterestLocation = new PointOfInterestLocation(pointOfInterest.id, pointOfInterest.latitude, pointOfInterest.longitude, pointOfInterestLocationDisplayPointPrefab, displayMap.transform);
+				pointsOfInterestLocations.Add(pointOfInterest.id, pointOfInterestLocation);
+				DisplayPointOfInterestLocation(pointOfInterestLocation, true);
+			}
+		}
+
+		/// <summary>
+		/// Callback: a Geeo point of interest just left the current user view.
+		/// </summary>
+		/// <param name="pointOfInterest">The actual point of interest.</param>
+		private void Geeo_OnPointOfInterestLeft(PointOfInterest pointOfInterest)
+		{
+			// If the point of interest exists in the points of interest list, remove it from the list and hide/destroy it
+			if (pointsOfInterestLocations.ContainsKey(pointOfInterest.id))
+			{
+				PointOfInterestLocation pointOfInterestLocation = pointsOfInterestLocations[pointOfInterest.id];
+				pointsOfInterestLocations.Remove(pointOfInterest.id);
+				DisplayPointOfInterestLocation(pointOfInterestLocation, false);
+				Destroy(pointOfInterestLocation.displayPoint);
 			}
 		}
 		#endregion
@@ -561,10 +603,10 @@ namespace GeeoDemo
 				: base(_id, _latitude, _longitude, _displayPointPrefab, _displayMap) {}
 		}
 
-		// The object prefab representing the other agents locations
+		// The object prefab representing the agents locations
 		[SerializeField] private GameObject agentLocationDisplayPointPrefab;
 
-		// List of the other agents locations
+		// List of the agents locations
 		private Dictionary<string, AgentLocation> agentsLocations = new Dictionary<string, AgentLocation>();
 
 		/// <summary>
@@ -589,6 +631,55 @@ namespace GeeoDemo
 			// If the agent location should be hidden, hide it
 			else if (agentLocation.displayPoint.activeSelf)
 				agentLocation.displayPoint.SetActive(false);
+		}
+		#endregion
+
+		#region Points Of Interest Location Display
+		/// <summary>
+		/// Represents a point of interest point location.
+		/// </summary>
+		private class PointOfInterestLocation : PointLocation
+		{
+			/// <summary>
+			/// PointOfInterestLocation class constructor.
+			/// </summary>
+			/// <param name="_id">Point of interest's location identifier.</param>
+			/// <param name="_latitude">Point of interest's location latitude.</param>
+			/// <param name="_longitude">Point of interest's location longitude.</param>
+			/// <param name="_displayPointPrefab">Prefab of point of interest's display point.</param>
+			/// <param name="_displayMap">Point of interest's display point map parent.</param>
+			public PointOfInterestLocation(string _id, double _latitude, double _longitude, GameObject _displayPointPrefab, Transform _displayMap)
+				: base(_id, _latitude, _longitude, _displayPointPrefab, _displayMap) {}
+		}
+
+		// The object prefab representing the points of interest locations
+		[SerializeField] private GameObject pointOfInterestLocationDisplayPointPrefab;
+
+		// List of the points of interest locations
+		private Dictionary<string, PointOfInterestLocation> pointsOfInterestLocations = new Dictionary<string, PointOfInterestLocation>();
+
+		/// <summary>
+		/// Display a point of interest's location point.
+		/// </summary>
+		/// <param name="pointOfInterestLocation">The point of interest's location to display or hide.</param>
+		/// <param name="display">If the point of interest location should be displayed or hidden.</param>
+		private void DisplayPointOfInterestLocation(PointOfInterestLocation pointOfInterestLocation, bool display = true)
+		{
+			// If the point of interest location should be displayed, display it and update its position
+			if (display)
+			{
+				// Calculate the new point of interest location point's position by converting GPS coordinates to X/Y ones
+				float pointOfInterestLocationX, pointOfInterestLocationY;
+				LatitudeLongitudeToXY(-pointOfInterestLocation.latitude, pointOfInterestLocation.longitude, out pointOfInterestLocationX, out pointOfInterestLocationY);
+				pointOfInterestLocation.displayPoint.transform.position = new Vector3(pointOfInterestLocationX, pointOfInterestLocationY, pointOfInterestLocation.displayPoint.transform.localPosition.z);
+
+				// Show the point of interest location point
+				if (!pointOfInterestLocation.displayPoint.activeSelf)
+					pointOfInterestLocation.displayPoint.SetActive(true);
+			}
+			// If the point of interest location should be hidden, hide it
+			else if (pointOfInterestLocation.displayPoint.activeSelf)
+				pointOfInterestLocation.displayPoint.SetActive(false);
 		}
 		#endregion
 

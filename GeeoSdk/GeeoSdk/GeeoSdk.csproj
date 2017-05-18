@@ -140,6 +140,7 @@
     <Compile Include="HighLevel\Model\PointOfInterest.cs" />
     <Compile Include="Internal\JsonModel\AgentJson.cs" />
     <Compile Include="Internal\JsonModel\ErrorJson.cs" />
+    <Compile Include="Internal\JsonModel\PointOfInterestJson.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>

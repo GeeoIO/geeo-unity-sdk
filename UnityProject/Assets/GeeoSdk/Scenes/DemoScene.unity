@@ -925,6 +925,8 @@ MonoBehaviour:
     type: 2}
   agentLocationDisplayPointPrefab: {fileID: 1620864052558968, guid: c5285b6a875ad5247ae9bc5db9da756c,
     type: 2}
+  pointOfInterestLocationDisplayPointPrefab: {fileID: 1620864052558968, guid: 663c0631c7fda954283fa06ca338f029,
+    type: 2}
   errorPanel: {fileID: 1113556008}
   errorText: {fileID: 1076862461}
   errorDisplayTime_Seconds: 5

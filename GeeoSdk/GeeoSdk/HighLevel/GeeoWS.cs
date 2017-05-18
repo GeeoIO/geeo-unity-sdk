@@ -196,6 +196,9 @@ namespace GeeoSdk
 					// Update type: agent data
 					if (messageUpdate.Keys.Contains("agent_id"))
 						WebSocketMessage_AgentUpdate(JsonMapper.ToObject<AgentJson>(messageUpdate.ToJson()));
+					// Update type: point of interest data
+					else if (messageUpdate.Keys.Contains("poi_id"))
+						WebSocketMessage_PointOfInterestUpdate(JsonMapper.ToObject<PointOfInterestJson>(messageUpdate.ToJson()));
 				}
 
 				// Trigger the OnViewUpdated event if any callback registered to it
@@ -235,8 +238,8 @@ namespace GeeoSdk
 				// Ensure the agent doesn't exist yet in the agents list
 				if (agents.ContainsKey(agentData.agent_id))
 				{
-					DebugLogs.LogError("[GeeoWS:WebSocketMessage_AgentUpdate] A new agent entered the viewport ›› Agent identifier ‘" + agentData.agent_id + "’ already exists");
-					if (OnError != null) { OnError("A new agent entered the viewport ›› Agent identifier ‘" + agentData.agent_id + "’ already exists"); }
+					DebugLogs.LogError("[GeeoWS:WebSocketMessage_AgentUpdate] A new agent entered the viewport ›› Identifier ‘" + agentData.agent_id + "’ already exists");
+					if (OnError != null) { OnError("A new agent entered the viewport ›› Identifier ‘" + agentData.agent_id + "’ already exists"); }
 					return;
 				}
 
@@ -259,8 +262,8 @@ namespace GeeoSdk
 				// Ensure the agent does exist in the agents list
 				if (!agents.ContainsKey(agentData.agent_id))
 				{
-					DebugLogs.LogError("[GeeoWS:WebSocketMessage_AgentUpdate] An agent left the viewport ›› Agent identifier ‘" + agentData.agent_id + "’ does not exist");
-					if (OnError != null) { OnError("An agent left the viewport ›› Agent identifier ‘" + agentData.agent_id + "’ does not exist"); }
+					DebugLogs.LogError("[GeeoWS:WebSocketMessage_AgentUpdate] An agent left the viewport ›› Identifier ‘" + agentData.agent_id + "’ does not exist");
+					if (OnError != null) { OnError("An agent left the viewport ›› Identifier ‘" + agentData.agent_id + "’ does not exist"); }
 					return;
 				}
 
@@ -279,8 +282,8 @@ namespace GeeoSdk
 				// Ensure the agent does exist in the agents list
 				if (!agents.ContainsKey(agentData.agent_id))
 				{
-					DebugLogs.LogError("[GeeoWS:WebSocketMessage_AgentUpdate] An agent moved in the viewport ›› Agent identifier ‘" + agentData.agent_id + "’ does not exist");
-					if (OnError != null) { OnError("An agent moved in the viewport ›› Agent identifier ‘" + agentData.agent_id + "’ does not exist"); }
+					DebugLogs.LogError("[GeeoWS:WebSocketMessage_AgentUpdate] An agent moved in the viewport ›› Identifier ‘" + agentData.agent_id + "’ does not exist");
+					if (OnError != null) { OnError("An agent moved in the viewport ›› Identifier ‘" + agentData.agent_id + "’ does not exist"); }
 					return;
 				}
 
@@ -293,6 +296,59 @@ namespace GeeoSdk
 
 				// Trigger the OnAgentMoved event if any callback registered to it
 				if (OnAgentMoved != null) { OnAgentMoved(agent); }
+			}
+		}
+
+		/// <summary>
+		/// Handle a "point of interest update" type received WebSocket message from the Geeo server to update the points of interest list.
+		/// </summary>
+		/// <param name="pointOfInterestData">Received message data about a point of interest.</param>
+		private void WebSocketMessage_PointOfInterestUpdate(PointOfInterestJson pointOfInterestData)
+		{
+			// If the point of interest just entered the viewport
+			if (pointOfInterestData.entered)
+			{
+				// Ensure the point of interest doesn't exist yet in the points of interest list
+				if (pointsOfInterest.ContainsKey(pointOfInterestData.poi_id))
+				{
+					DebugLogs.LogError("[GeeoWS:WebSocketMessage_PointOfInterestUpdate] A new point of interest entered the viewport ›› Identifier ‘" + pointOfInterestData.poi_id + "’ already exists");
+					if (OnError != null) { OnError("A new point of interest entered the viewport ›› Identifier ‘" + pointOfInterestData.poi_id + "’ already exists"); }
+					return;
+				}
+
+				// Create a new PointOfInterest instance and fill its data from the received message
+				PointOfInterest pointOfInterest = new PointOfInterest();
+				pointOfInterest.id = pointOfInterestData.poi_id;
+				pointOfInterest.latitude = pointOfInterestData.pos[1];
+				pointOfInterest.longitude = pointOfInterestData.pos[0];
+				pointOfInterest.publicData = pointOfInterestData.publicData;
+				pointOfInterest.creatorId = pointOfInterestData.creator;
+
+				// Add the new point of interest to the points of interest list
+				pointsOfInterest.Add(pointOfInterestData.poi_id, pointOfInterest);
+
+				// Trigger the OnPointOfInterestEntered event if any callback registered to it
+				if (OnPointOfInterestEntered != null) { OnPointOfInterestEntered(pointOfInterest); }
+			}
+			// If the point of interest just left the viewport
+			else if (pointOfInterestData.left)
+			{
+				// Ensure the point of interest does exist in the points of interest list
+				if (!pointsOfInterest.ContainsKey(pointOfInterestData.poi_id))
+				{
+					DebugLogs.LogError("[GeeoWS:WebSocketMessage_PointOfInterestUpdate] A point of interest left the viewport ›› Identifier ‘" + pointOfInterestData.poi_id + "’ does not exist");
+					if (OnError != null) { OnError("A point of interest left the viewport ›› Identifier ‘" + pointOfInterestData.poi_id + "’ does not exist"); }
+					return;
+				}
+
+				// Get the point of interest corresponding to its identifier for the points of interest list
+				PointOfInterest pointOfInterest = pointsOfInterest[pointOfInterestData.poi_id];
+
+				// Remove the point of interest from the points of interest list
+				pointsOfInterest.Remove(pointOfInterestData.poi_id);
+
+				// Trigger the OnPointOfInterestLeft event if any callback registered to it
+				if (OnPointOfInterestLeft != null) { OnPointOfInterestLeft(pointOfInterest); }
 			}
 		}
 		#endregion
@@ -329,6 +385,16 @@ namespace GeeoSdk
 		public event Action<Agent> OnAgentMoved;
 
 		/// <summary>
+		/// Callback: a point of interest entered the viewport.
+		/// </summary>
+		public event Action<PointOfInterest> OnPointOfInterestEntered;
+
+		/// <summary>
+		/// Callback: a point of interest left the viewport.
+		/// </summary>
+		public event Action<PointOfInterest> OnPointOfInterestLeft;
+
+		/// <summary>
 		/// Callback: the view has been updated with fresh data (updated agents and points of interest).
 		/// This is the right moment to call Agents and PointsOfInterest getters.
 		/// </summary>
@@ -346,16 +412,19 @@ namespace GeeoSdk
 		/// </summary>
 		public Viewport connectedViewport {get; private set;}
 
-		// Complete list of all agents currently present in the connected viewport (including the connected agent)
-		private Dictionary<string, Agent> agents = new Dictionary<string, Agent>();
+		/// <summary>
+		/// Complete Dictionary (key = agent's id) of all agents currently present in the connected viewport (including the connected agent).
+		/// The best moment to call this getter would be when an OnViewUpdated event is triggered.
+		/// </summary>
+		public Dictionary<string, Agent> agents = new Dictionary<string, Agent>();
 
 		/// <summary>
-		/// Complete list of all agents currently present in the connected viewport (including the connected agent).
-		/// The best moment to call this getter should be when an OnViewUpdated event is triggered.
+		/// Complete List of all agents currently present in the connected viewport (including the connected agent).
+		/// The best moment to call this getter would be when an OnViewUpdated event is triggered.
 		/// </summary>
 		public List<Agent> Agents
 		{
-			// Build a new list from the existing one to avoid external editing, then return it
+			// Build a List from the existing Dictionary, then return it
 			get
 			{
 				List<Agent> agentsList = new List<Agent>();
@@ -364,6 +433,30 @@ namespace GeeoSdk
 					agentsList.Add(agent.Value);
 
 				return agentsList;
+			}
+		}
+
+		/// <summary>
+		/// Complete Dictionary (key = point of interest's id) of all points of interest currently present in the connected viewport.
+		/// The best moment to call this getter would be when an OnViewUpdated event is triggered.
+		/// </summary>
+		public Dictionary<string, PointOfInterest> pointsOfInterest = new Dictionary<string, PointOfInterest>();
+
+		/// <summary>
+		/// Complete List of all points of interest currently present in the connected viewport.
+		/// The best moment to call this getter would be when an OnViewUpdated event is triggered.
+		/// </summary>
+		public List<PointOfInterest> PointsOfInterest
+		{
+			// Build a List from the existing Dictionary, then return it
+			get
+			{
+				List<PointOfInterest> pointsOfInterestList = new List<PointOfInterest>();
+
+				foreach (KeyValuePair<string, PointOfInterest> pointOfInterest in pointsOfInterest)
+					pointsOfInterestList.Add(pointOfInterest.Value);
+
+				return pointsOfInterestList;
 			}
 		}
 		#endregion

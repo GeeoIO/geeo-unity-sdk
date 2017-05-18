@@ -114,7 +114,7 @@ namespace GeeoDemo
 			DisplayUserLocation(false);
 
 			// Hide and remove all the agents locations from the list
-			foreach (KeyValuePair<string, UserLocation> agentLocation in agentsLocations)
+			foreach (KeyValuePair<string, AgentLocation> agentLocation in agentsLocations)
 			{
 				DisplayAgentLocation(agentLocation.Value, false);
 				Destroy(agentLocation.Value.displayPoint);
@@ -144,7 +144,7 @@ namespace GeeoDemo
 			// If the agent doesn't exist in the agents list and is not the current user, add it then display it
 			if ((agent.id != lastUserLocation.id) && !agentsLocations.ContainsKey(agent.id))
 			{
-				UserLocation agentLocation = new UserLocation(agent.id, agent.latitude, agent.longitude, agentLocationDisplayPointPrefab, displayMap.transform);
+				AgentLocation agentLocation = new AgentLocation(agent.id, agent.latitude, agent.longitude, agentLocationDisplayPointPrefab, displayMap.transform);
 				agentsLocations.Add(agent.id, agentLocation);
 				DisplayAgentLocation(agentLocation, true);
 			}
@@ -159,7 +159,7 @@ namespace GeeoDemo
 			// If the agent exists in the agents list, remove it from the list and hide/destroy it
 			if (agentsLocations.ContainsKey(agent.id))
 			{
-				UserLocation agentLocation = agentsLocations[agent.id];
+				AgentLocation agentLocation = agentsLocations[agent.id];
 				agentsLocations.Remove(agent.id);
 				DisplayAgentLocation(agentLocation, false);
 				Destroy(agentLocation.displayPoint);
@@ -175,7 +175,7 @@ namespace GeeoDemo
 			// If the agent exists in the agents list, update its data then display it
 			if (agentsLocations.ContainsKey(agent.id))
 			{
-				UserLocation agentLocation = agentsLocations[agent.id];
+				AgentLocation agentLocation = agentsLocations[agent.id];
 				agentLocation.latitude = agent.latitude;
 				agentLocation.longitude = agent.longitude;
 				DisplayAgentLocation(agentLocation, true);
@@ -203,31 +203,31 @@ namespace GeeoDemo
 		}
 		#endregion
 
-		#region User Location And View
+		#region Common Base Classes
 		/// <summary>
-		/// Represents a user location with its latitude and longitude coordinates.
+		/// Represents a point location.
 		/// </summary>
-		private class UserLocation
+		private class PointLocation
 		{
-			// User location's identifier
+			// Point location's identifier
 			public string id;
 
-			// User location's coordinates
+			// Point location's coordinates
 			public double latitude;
 			public double longitude;
 
-			// User location's display point object
+			// Point location's display point object
 			public GameObject displayPoint;
 
 			/// <summary>
-			/// Class constructor.
+			/// PointLocation class constructor.
 			/// </summary>
-			/// <param name="_id">User's location identifier.</param>
-			/// <param name="_latitude">User's location latitude.</param>
-			/// <param name="_longitude">User's location longitude.</param>
-			/// <param name="_displayPointPrefab">Prefab of user's display point.</param>
-			/// <param name="_displayMap">User's display point map parent.</param>
-			public UserLocation(string _id, double _latitude, double _longitude, GameObject _displayPointPrefab, Transform _displayMap)
+			/// <param name="_id">Point's location identifier.</param>
+			/// <param name="_latitude">Point's location latitude.</param>
+			/// <param name="_longitude">Point's location longitude.</param>
+			/// <param name="_displayPointPrefab">Prefab of point's display point.</param>
+			/// <param name="_displayMap">Point's display point map parent.</param>
+			public PointLocation(string _id, double _latitude, double _longitude, GameObject _displayPointPrefab, Transform _displayMap)
 			{
 				id = _id;
 				latitude = _latitude;
@@ -248,32 +248,32 @@ namespace GeeoDemo
 		}
 
 		/// <summary>
-		/// Represents a user view with its latitudes and longitudes bounds coordinates.
+		/// Represents a square view.
 		/// </summary>
-		private class UserView
+		private class SquareView
 		{
-			// User view's identifier
+			// Square view's identifier
 			public string id;
 
-			// User view's coordinates
+			// Square view's coordinates
 			public double latitude1;
 			public double latitude2;
 			public double longitude1;
 			public double longitude2;
 
-			// User view's display LineRender instance
+			// Square view's display LineRender instance
 			public LineRenderer displayLines;
 
 			/// <summary>
-			/// Class constructor.
+			/// SquareView class constructor.
 			/// </summary>
-			/// <param name="_id">User's view identifier.</param>
-			/// <param name="_latitude1">First user's view latitude bound.</param>
-			/// <param name="_latitude2">Second user's view latitude bound.</param>
-			/// <param name="_longitude1">First user's view longitude bound.</param>
-			/// <param name="_longitude2">Second user's view longitude bound.</param>
-			/// <param name="_displayPoint">User's display point reference.</param>
-			public UserView(string _id, double _latitude1, double _latitude2, double _longitude1, double _longitude2, GameObject _displayPoint)
+			/// <param name="_id">Square's view identifier.</param>
+			/// <param name="_latitude1">First square's view latitude bound.</param>
+			/// <param name="_latitude2">Second square's view latitude bound.</param>
+			/// <param name="_longitude1">First square's view longitude bound.</param>
+			/// <param name="_longitude2">Second square's view longitude bound.</param>
+			/// <param name="_displayPoint">Square's display point reference.</param>
+			public SquareView(string _id, double _latitude1, double _latitude2, double _longitude1, double _longitude2, GameObject _displayPoint)
 			{
 				id = _id;
 				latitude1 = _latitude1;
@@ -291,6 +291,43 @@ namespace GeeoDemo
 			{
 				return string.Format("{{ Id: {0}, La1: {1}, La2: {2}, Lo1: {3}, Lo2: {4} }}", id, latitude1, latitude2, longitude1, longitude2);
 			}
+		}
+		#endregion
+
+		#region User Location & View Update
+		/// <summary>
+		/// Represents a user point location.
+		/// </summary>
+		private class UserLocation : PointLocation
+		{
+			/// <summary>
+			/// UserLocation class constructor.
+			/// </summary>
+			/// <param name="_id">User's location identifier.</param>
+			/// <param name="_latitude">User's location latitude.</param>
+			/// <param name="_longitude">User's location longitude.</param>
+			/// <param name="_displayPointPrefab">Prefab of user's display point.</param>
+			/// <param name="_displayMap">User's display point map parent.</param>
+			public UserLocation(string _id, double _latitude, double _longitude, GameObject _displayPointPrefab, Transform _displayMap)
+				: base(_id, _latitude, _longitude, _displayPointPrefab, _displayMap) {}
+		}
+
+		/// <summary>
+		/// Represents a user square view.
+		/// </summary>
+		private class UserView : SquareView
+		{
+			/// <summary>
+			/// UserView class constructor.
+			/// </summary>
+			/// <param name="_id">User's view identifier.</param>
+			/// <param name="_latitude1">First user's view latitude bound.</param>
+			/// <param name="_latitude2">Second user's view latitude bound.</param>
+			/// <param name="_longitude1">First user's view longitude bound.</param>
+			/// <param name="_longitude2">Second user's view longitude bound.</param>
+			/// <param name="_displayPoint">User's display point reference.</param>
+			public UserView(string _id, double _latitude1, double _latitude2, double _longitude1, double _longitude2, GameObject _displayPoint)
+				: base(_id, _latitude1, _latitude2, _longitude1, _longitude2, _displayPoint) {}
 		}
 
 		// Time to wait (in seconds) between each location service initialization check
@@ -317,8 +354,8 @@ namespace GeeoDemo
 
 		// How much latitude/longitude to add/subtract to user's location to get its view bounds
 		// TODO: Replace by X/Y extents to avoid vertical view square distortion caused by latitude variations
-		[SerializeField] [Range(0.0000001f, (float)latitudeMax)] private double userViewLatitudeExtent = 10f;
-		[SerializeField] [Range(0.0000001f, (float)longitudeMax)] private double userViewLongitudeExtent = 20f;
+		[SerializeField] [Range(0.00001f, (float)(latitudeMax * 2d))] private double userViewLatitudeExtent = 10f;
+		[SerializeField] [Range(0.00001f, (float)(longitudeMax * 2d))] private double userViewLongitudeExtent = 20f;
 
 		// The last user location obtained from the location service
 		private UserLocation lastUserLocation;
@@ -449,7 +486,7 @@ namespace GeeoDemo
 		}
 		#endregion
 
-		#region User Location And View Display
+		#region User Location & View Display
 		// Default depth of user's view display lines
 		private const float userViewDisplayLinesDefaultZ = -1f;
 
@@ -504,7 +541,58 @@ namespace GeeoDemo
 			else if (lastUserLocation.displayPoint.activeSelf)
 				lastUserLocation.displayPoint.SetActive(false);
 		}
+		#endregion
 
+		#region Agents Location Display
+		/// <summary>
+		/// Represents an agent point location.
+		/// </summary>
+		private class AgentLocation : PointLocation
+		{
+			/// <summary>
+			/// AgentLocation class constructor.
+			/// </summary>
+			/// <param name="_id">Agent's location identifier.</param>
+			/// <param name="_latitude">Agent's location latitude.</param>
+			/// <param name="_longitude">Agent's location longitude.</param>
+			/// <param name="_displayPointPrefab">Prefab of agent's display point.</param>
+			/// <param name="_displayMap">Agent's display point map parent.</param>
+			public AgentLocation(string _id, double _latitude, double _longitude, GameObject _displayPointPrefab, Transform _displayMap)
+				: base(_id, _latitude, _longitude, _displayPointPrefab, _displayMap) {}
+		}
+
+		// The object prefab representing the other agents locations
+		[SerializeField] private GameObject agentLocationDisplayPointPrefab;
+
+		// List of the other agents locations
+		private Dictionary<string, AgentLocation> agentsLocations = new Dictionary<string, AgentLocation>();
+
+		/// <summary>
+		/// Display an agent's location point.
+		/// </summary>
+		/// <param name="agentLocation">The agent's location to display or hide.</param>
+		/// <param name="display">If the agent location should be displayed or hidden.</param>
+		private void DisplayAgentLocation(AgentLocation agentLocation, bool display = true)
+		{
+			// If the agent location should be displayed, display it and update its position
+			if (display)
+			{
+				// Calculate the new agent location point's position by converting GPS coordinates to X/Y ones
+				float agentLocationX, agentLocationY;
+				LatitudeLongitudeToXY(-agentLocation.latitude, agentLocation.longitude, out agentLocationX, out agentLocationY);
+				agentLocation.displayPoint.transform.position = new Vector3(agentLocationX, agentLocationY, agentLocation.displayPoint.transform.localPosition.z);
+
+				// Show the agent location point
+				if (!agentLocation.displayPoint.activeSelf)
+					agentLocation.displayPoint.SetActive(true);
+			}
+			// If the agent location should be hidden, hide it
+			else if (agentLocation.displayPoint.activeSelf)
+				agentLocation.displayPoint.SetActive(false);
+		}
+		#endregion
+
+		#region Coordinates Conversion
 		/// <summary>
 		/// Convert WGS 84 coordinates to X/Y flat ones (GPS to squared map).
 		/// </summary>
@@ -539,38 +627,6 @@ namespace GeeoDemo
 
 			latitude = 90d - 360d * Math.Atan(Math.Exp(-tmpY * 2d * Math.PI)) / Math.PI;
 			longitude = 360d * tmpX;
-		}
-		#endregion
-
-		#region Agents Location Display
-		// The object prefab representing the other agents locations
-		[SerializeField] private GameObject agentLocationDisplayPointPrefab;
-
-		// List of the other agents locations
-		private Dictionary<string, UserLocation> agentsLocations = new Dictionary<string, UserLocation>();
-
-		/// <summary>
-		/// Display an agent's location point.
-		/// </summary>
-		/// <param name="agentLocation">The agent's location to display or hide.</param>
-		/// <param name="display">If the agent location should be displayed or hidden.</param>
-		private void DisplayAgentLocation(UserLocation agentLocation, bool display = true)
-		{
-			// If the agent location should be displayed, display it and update its position
-			if (display)
-			{
-				// Calculate the new agent location point's position by converting GPS coordinates to X/Y ones
-				float agentLocationX, agentLocationY;
-				LatitudeLongitudeToXY(-agentLocation.latitude, agentLocation.longitude, out agentLocationX, out agentLocationY);
-				agentLocation.displayPoint.transform.position = new Vector3(agentLocationX, agentLocationY, agentLocation.displayPoint.transform.localPosition.z);
-
-				// Show the agent location point
-				if (!agentLocation.displayPoint.activeSelf)
-					agentLocation.displayPoint.SetActive(true);
-			}
-			// If the agent location should be hidden, hide it
-			else if (agentLocation.displayPoint.activeSelf)
-				agentLocation.displayPoint.SetActive(false);
 		}
 		#endregion
 

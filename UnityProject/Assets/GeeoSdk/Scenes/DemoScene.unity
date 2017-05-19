@@ -911,7 +911,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   userLocationUpdatesDelay: 1
-  useSimulatedUserLocation: 1
+  useSimulatedUserLocation: 0
   simulatedUserLocationMoveRange: 1
   defaultUserLocationLatitude: 28.047983169555664
   defaultUserLocationLongitude: -16.71738052368164

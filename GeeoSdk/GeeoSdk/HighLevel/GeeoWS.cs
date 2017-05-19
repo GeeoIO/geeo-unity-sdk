@@ -158,6 +158,16 @@ namespace GeeoSdk
 			agents.Clear();
 			pointsOfInterest.Clear();
 
+			// Stop the connect coroutine if still running
+			if (webSocketConnectCoroutine != null)
+			{
+				Geeo.Instance.StopCoroutine(webSocketConnectCoroutine);
+				webSocketConnectCoroutine = null;
+			}
+
+			// Stop the network check (ping)
+			webSocket.NetworkCheckStop();
+
 			// Trigger the OnDisconnected event if any callback registered to it
 			if (OnDisconnected != null) { OnDisconnected(); }
 		}
@@ -464,10 +474,13 @@ namespace GeeoSdk
 
 		#region Requests Handling
 		// The Json format for a "move agent" request: { "agentPosition": [longitude, latitude] }
-		private const string moveAgent_jsonFormat = "{{\"agentPosition\":[{1},{0}]}}";
+		private const string jsonFormat_moveAgent = "{{\"agentPosition\":[{1},{0}]}}";
 
 		// The Json format for a "move viewport" request: { "viewPosition": [longitude1, latitude1, longitude2, latitude2] }
-		private const string moveViewport_jsonFormat = "{{\"viewPosition\":[{2},{0},{3},{1}]}}";
+		private const string jsonFormat_moveViewport = "{{\"viewPosition\":[{2},{0},{3},{1}]}}";
+
+		// The Json format for a "create point of interest" request: { "createPOI": { "poi_id": id, "pos": [longitude, latitude], "publicData": publicData, "creator": creatorId} }
+		private const string jsonFormat_createPointOfInterest = "{{\"createPOI\":{{\"poi_id\":\"{0}\",\"pos\":[{2},{1}],\"publicData\":{3},\"creator\":\"{4}\"}}}}";
 
 		/// <summary>
 		/// Use a JWT WebSocket token previously provided by the Geeo server to open a WebSocket connection.
@@ -527,7 +540,7 @@ namespace GeeoSdk
 			connectedAgent.longitude = newLongitude;
 
 			// Send a WebSocket message to the Geeo server to update the remote currently connected agent location
-			webSocket.Send(string.Format(moveAgent_jsonFormat, newLatitude, newLongitude));
+			webSocket.Send(string.Format(jsonFormat_moveAgent, newLatitude, newLongitude));
 		}
 
 		/// <summary>
@@ -546,7 +559,21 @@ namespace GeeoSdk
 			connectedViewport.longitude2 = newLongitude2;
 
 			// Send a WebSocket message to the Geeo server to update the remote currently connected viewport location
-			webSocket.Send(string.Format(moveViewport_jsonFormat, newLatitude1, newLatitude2, newLongitude1, newLongitude2));
+			webSocket.Send(string.Format(jsonFormat_moveViewport, newLatitude1, newLatitude2, newLongitude1, newLongitude2));
+		}
+
+		/// <summary>
+		/// Create a new point of interest.
+		/// </summary>
+		/// <param name="id">Point of interest's identifier.</param>
+		/// <param name="latitude">Point of interest's location latitude.</param>
+		/// <param name="longitude">Point of interest's location longitude.</param>
+		/// <param name="creatorId">Point of interest creator's identifier.</param>
+		/// <param name="publicData">Point of interest's public data.</param>
+		public void CreatePointOfInterest(string id, double latitude, double longitude, string creatorId, JsonData publicData = null)
+		{
+			// Send a WebSocket message to the Geeo server to create the new point of interest
+			webSocket.Send(string.Format(jsonFormat_createPointOfInterest, id, latitude, longitude, publicData == null ? "{}" : publicData.ToJson(), creatorId));
 		}
 		#endregion
 	}

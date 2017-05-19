@@ -232,6 +232,7 @@ namespace GeeoDemo
 		/// <param name="currentAgentLocation">The new last known user agent location.</param>
 		private void Geeo_MoveConnectedAgent(UserLocation currentAgentLocation)
 		{
+			// Call the Geeo SDK's API to move the connected agent (user location)
 			Geeo.Instance.ws.MoveConnectedAgent(currentAgentLocation.latitude, currentAgentLocation.longitude);
 		}
 
@@ -241,7 +242,31 @@ namespace GeeoDemo
 		/// <param name="currentViewportLocation">The new last known user view location.</param>
 		private void Geeo_MoveConnectedViewport(UserView currentViewportLocation)
 		{
+			// Call the Geeo SDK's API to move the connected viewport (user view)
 			Geeo.Instance.ws.MoveConnectedViewport(currentViewportLocation.latitude1, currentViewportLocation.latitude2, currentViewportLocation.longitude1, currentViewportLocation.longitude2);
+		}
+
+		/// <summary>
+		/// At each Update, check if the left mouse button is clicked to add a point of interest.
+		/// </summary>
+		private void Update()
+		{
+			// If the left mouse button is clicked, add a point of interest to the clicked coordinates
+			if (Input.GetMouseButtonDown(0))
+			{
+				// Convert the mouse screen X/Y position to world X/Y position
+				Vector3 mousePosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+
+				// Convert the mouse world X/Y position to latitude/longitude position
+				double mouseLatitude, mouseLongitude;
+				XYToLatitudeLongitude(mousePosition.x, mousePosition.y, out mouseLatitude, out mouseLongitude);
+
+				// Generate pseudo-random point of interest identifier
+				string pointOfInterestId = "poi" + DateTime.UtcNow.ToString(dateTimeFormat_Iso8601);
+
+				// Call the Geeo SDK's API to create a new point of interest
+				Geeo.Instance.ws.CreatePointOfInterest(pointOfInterestId, -mouseLatitude, mouseLongitude, lastUserLocation.id);
+			}
 		}
 		#endregion
 

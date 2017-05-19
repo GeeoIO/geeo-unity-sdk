@@ -485,6 +485,12 @@ namespace GeeoSdk
 		// The Json format for a "remove point of interest" request: { "removePOI": { "poi_id": id } }
 		private const string jsonFormat_removePointOfInterest = "{{\"removePOI\":{{\"poi_id\":\"{0}\"}}}}";
 
+		// The Json format for a "create air beacon" request: { "createAirBeacon": { "ab_id": id, "pos": [longitude1, latitude1, longitude2, latitude2], "publicData": publicData, "creator": creatorId} }
+		private const string jsonFormat_createAirBeacon = "{{\"createAirBeacon\":{{\"ab_id\":\"{0}\",\"pos\":[{3},{1},{4},{2}],\"publicData\":{5},\"creator\":\"{6}\"}}}}";
+
+		// The Json format for a "remove air beacon" request: { "removeAirBeacon": { "ab_id": id } }
+		private const string jsonFormat_removeAirBeacon = "{{\"removeAirBeacon\":{{\"ab_id\":\"{0}\"}}}}";
+
 		/// <summary>
 		/// Use a JWT WebSocket token previously provided by the Geeo server to open a WebSocket connection.
 		/// If development routes are allowed, you may use the GeeoHTTP.GetGuestToken() method to get a token.
@@ -587,6 +593,32 @@ namespace GeeoSdk
 		{
 			// Send a WebSocket message to the Geeo server to remove the existing point of interest
 			webSocket.Send(string.Format(jsonFormat_removePointOfInterest, id));
+		}
+
+		/// <summary>
+		/// Create a new air beacon.
+		/// </summary>
+		/// <param name="id">Air beacon's identifier.</param>
+		/// <param name="latitude1">Air beacon's first latitude bound.</param>
+		/// <param name="latitude2">Air beacon's second latitude bound.</param>
+		/// <param name="longitude1">Air beacon's first longitude bound.</param>
+		/// <param name="longitude2">Air beacon's second longitude bound.</param>
+		/// <param name="creatorId">Air beacon creator's identifier.</param>
+		/// <param name="publicData">Air beacon's public data.</param>
+		public void CreateAirBeacon(string id, double latitude1, double latitude2, double longitude1, double longitude2, string creatorId, JsonData publicData = null)
+		{
+			// Send a WebSocket message to the Geeo server to create the new air beacon
+			webSocket.Send(string.Format(jsonFormat_createAirBeacon, id, latitude1, latitude2, longitude1, longitude2, publicData == null ? "{}" : publicData.ToJson(), creatorId));
+		}
+
+		/// <summary>
+		/// Remove an existing air beacon.
+		/// </summary>
+		/// <param name="id">Air beacon's identifier.</param>
+		public void RemoveAirBeacon(string id)
+		{
+			// Send a WebSocket message to the Geeo server to remove the existing air beacon
+			webSocket.Send(string.Format(jsonFormat_removeAirBeacon, id));
 		}
 		#endregion
 	}

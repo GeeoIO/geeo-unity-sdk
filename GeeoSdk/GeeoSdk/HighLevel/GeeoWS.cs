@@ -482,6 +482,9 @@ namespace GeeoSdk
 		// The Json format for a "create point of interest" request: { "createPOI": { "poi_id": id, "pos": [longitude, latitude], "publicData": publicData, "creator": creatorId} }
 		private const string jsonFormat_createPointOfInterest = "{{\"createPOI\":{{\"poi_id\":\"{0}\",\"pos\":[{2},{1}],\"publicData\":{3},\"creator\":\"{4}\"}}}}";
 
+		// The Json format for a "remove point of interest" request: { "removePOI": { "poi_id": id } }
+		private const string jsonFormat_removePointOfInterest = "{{\"removePOI\":{{\"poi_id\":\"{0}\"}}}}";
+
 		/// <summary>
 		/// Use a JWT WebSocket token previously provided by the Geeo server to open a WebSocket connection.
 		/// If development routes are allowed, you may use the GeeoHTTP.GetGuestToken() method to get a token.
@@ -574,6 +577,16 @@ namespace GeeoSdk
 		{
 			// Send a WebSocket message to the Geeo server to create the new point of interest
 			webSocket.Send(string.Format(jsonFormat_createPointOfInterest, id, latitude, longitude, publicData == null ? "{}" : publicData.ToJson(), creatorId));
+		}
+
+		/// <summary>
+		/// Remove an existing point of interest.
+		/// </summary>
+		/// <param name="id">Point of interest's identifier.</param>
+		public void RemovePointOfInterest(string id)
+		{
+			// Send a WebSocket message to the Geeo server to remove the existing point of interest
+			webSocket.Send(string.Format(jsonFormat_removePointOfInterest, id));
 		}
 		#endregion
 	}

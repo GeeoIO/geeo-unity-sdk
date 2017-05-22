@@ -914,9 +914,9 @@ MonoBehaviour:
   useSimulatedUserLocation: 0
   simulatedUserLocationMoveRange: 1
   defaultUserLocationLatitude: 28.047983169555664
-  defaultUserLocationLongitude: -16.71738052368164
-  userViewLatitudeExtent: 10
-  userViewLongitudeExtent: 20
+  defaultUserLocationLongitude: -16.717376708984375
+  userViewExtentX: 60
+  userViewExtentY: 30
   userLocationCameraFollowing: 1
   mainCamera: {fileID: 722565089}
   displayMap: {fileID: 1683099120}

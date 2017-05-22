@@ -275,7 +275,7 @@ namespace GeeoDemo
 				string pointOfInterestId = "poi" + DateTime.UtcNow.ToString(dateTimeFormat_Iso8601);
 
 				// Call the Geeo SDK's API to create a new point of interest
-				Geeo.Instance.ws.CreatePointOfInterest(pointOfInterestId, -mouseLatitude, mouseLongitude, lastUserLocation.id);
+				Geeo.Instance.ws.CreatePointOfInterest(pointOfInterestId, mouseLatitude, mouseLongitude);
 			}
 		}
 		#endregion

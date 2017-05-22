@@ -479,14 +479,14 @@ namespace GeeoSdk
 		// The Json format for a "move viewport" request: { "viewPosition": [longitude1, latitude1, longitude2, latitude2] }
 		private const string jsonFormat_moveViewport = "{{\"viewPosition\":[{2},{0},{3},{1}]}}";
 
-		// The Json format for a "create point of interest" request: { "createPOI": { "poi_id": id, "pos": [longitude, latitude], "publicData": publicData, "creator": creatorId} }
-		private const string jsonFormat_createPointOfInterest = "{{\"createPOI\":{{\"poi_id\":\"{0}\",\"pos\":[{2},{1}],\"publicData\":{3},\"creator\":\"{4}\"}}}}";
+		// The Json format for a "create point of interest" request: { "createPOI": { "poi_id": id, "pos": [longitude, latitude], "publicData": publicData} }
+		private const string jsonFormat_createPointOfInterest = "{{\"createPOI\":{{\"poi_id\":\"{0}\",\"pos\":[{2},{1}],\"publicData\":{3}}}}}";
 
 		// The Json format for a "remove point of interest" request: { "removePOI": { "poi_id": id } }
 		private const string jsonFormat_removePointOfInterest = "{{\"removePOI\":{{\"poi_id\":\"{0}\"}}}}";
 
-		// The Json format for a "create air beacon" request: { "createAirBeacon": { "ab_id": id, "pos": [longitude1, latitude1, longitude2, latitude2], "publicData": publicData, "creator": creatorId} }
-		private const string jsonFormat_createAirBeacon = "{{\"createAirBeacon\":{{\"ab_id\":\"{0}\",\"pos\":[{3},{1},{4},{2}],\"publicData\":{5},\"creator\":\"{6}\"}}}}";
+		// The Json format for a "create air beacon" request: { "createAirBeacon": { "ab_id": id, "pos": [longitude1, latitude1, longitude2, latitude2], "publicData": publicData} }
+		private const string jsonFormat_createAirBeacon = "{{\"createAirBeacon\":{{\"ab_id\":\"{0}\",\"pos\":[{3},{1},{4},{2}],\"publicData\":{5}}}}}";
 
 		// The Json format for a "remove air beacon" request: { "removeAirBeacon": { "ab_id": id } }
 		private const string jsonFormat_removeAirBeacon = "{{\"removeAirBeacon\":{{\"ab_id\":\"{0}\"}}}}";
@@ -577,12 +577,11 @@ namespace GeeoSdk
 		/// <param name="id">Point of interest's identifier.</param>
 		/// <param name="latitude">Point of interest's location latitude.</param>
 		/// <param name="longitude">Point of interest's location longitude.</param>
-		/// <param name="creatorId">Point of interest creator's identifier.</param>
 		/// <param name="publicData">Point of interest's public data.</param>
-		public void CreatePointOfInterest(string id, double latitude, double longitude, string creatorId, JsonData publicData = null)
+		public void CreatePointOfInterest(string id, double latitude, double longitude, JsonData publicData = null)
 		{
 			// Send a WebSocket message to the Geeo server to create the new point of interest
-			webSocket.Send(string.Format(jsonFormat_createPointOfInterest, id, latitude, longitude, publicData == null ? "{}" : publicData.ToJson(), creatorId));
+			webSocket.Send(string.Format(jsonFormat_createPointOfInterest, id, latitude, longitude, publicData == null ? "{}" : publicData.ToJson()));
 		}
 
 		/// <summary>
@@ -603,12 +602,11 @@ namespace GeeoSdk
 		/// <param name="latitude2">Air beacon's second latitude bound.</param>
 		/// <param name="longitude1">Air beacon's first longitude bound.</param>
 		/// <param name="longitude2">Air beacon's second longitude bound.</param>
-		/// <param name="creatorId">Air beacon creator's identifier.</param>
 		/// <param name="publicData">Air beacon's public data.</param>
-		public void CreateAirBeacon(string id, double latitude1, double latitude2, double longitude1, double longitude2, string creatorId, JsonData publicData = null)
+		public void CreateAirBeacon(string id, double latitude1, double latitude2, double longitude1, double longitude2, JsonData publicData = null)
 		{
 			// Send a WebSocket message to the Geeo server to create the new air beacon
-			webSocket.Send(string.Format(jsonFormat_createAirBeacon, id, latitude1, latitude2, longitude1, longitude2, publicData == null ? "{}" : publicData.ToJson(), creatorId));
+			webSocket.Send(string.Format(jsonFormat_createAirBeacon, id, latitude1, latitude2, longitude1, longitude2, publicData == null ? "{}" : publicData.ToJson()));
 		}
 
 		/// <summary>

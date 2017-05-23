@@ -243,26 +243,36 @@ namespace GeeoSdk
 		/// <param name="agentData">Received message data about an agent.</param>
 		private void WebSocketMessage_AgentUpdate(AgentJson agentData)
 		{
+			Agent agent;
+
 			// If the agent just entered the viewport
 			if (agentData.entered)
 			{
-				// Ensure the agent doesn't exist yet in the agents list
+				// If the agent already exists in the agents list, only update this agent's position
 				if (agents.ContainsKey(agentData.agent_id))
 				{
-					DebugLogs.LogError("[GeeoWS:WebSocketMessage_AgentUpdate] A new agent entered the viewport ›› Identifier ‘" + agentData.agent_id + "’ already exists");
-					if (OnError != null) { OnError("A new agent entered the viewport ›› Identifier ‘" + agentData.agent_id + "’ already exists"); }
-					return;
-				}
+					DebugLogs.LogWarning("[GeeoWS:WebSocketMessage_AgentUpdate] Agent ‘" + agentData.agent_id + "’ received 2 ‘entered’ updates without any ‘left’ one");
 
-				// Create a new Agent instance and fill its data from the received message
-				Agent agent = new Agent();
-				agent.id = agentData.agent_id;
-				agent.latitude = agentData.pos[1];
-				agent.longitude = agentData.pos[0];
-				agent.publicData = agentData.publicData;
-				
-				// Add the new agent to the agents list
-				agents.Add(agentData.agent_id, agent);
+					// Get the agent corresponding to its identifier from the agents list
+					agent = agents[agentData.agent_id];
+
+					// Update agent's data from the received message
+					agent.latitude = agentData.pos[1];
+					agent.longitude = agentData.pos[0];
+				}
+				// If the agent doesn't exist in the agents list, add this agent to the list
+				else
+				{
+					// Create a new Agent instance and fill its data from the received message
+					agent = new Agent();
+					agent.id = agentData.agent_id;
+					agent.latitude = agentData.pos[1];
+					agent.longitude = agentData.pos[0];
+					agent.publicData = agentData.publicData;
+					
+					// Add the new agent to the agents list
+					agents.Add(agentData.agent_id, agent);
+				}
 
 				// Trigger the OnAgentEntered event if any callback registered to it
 				if (OnAgentEntered != null) { OnAgentEntered(agent); }
@@ -270,19 +280,24 @@ namespace GeeoSdk
 			// If the agent just left the viewport
 			else if (agentData.left)
 			{
-				// Ensure the agent does exist in the agents list
+				// If the agent doesn't exist in the agents list, just ignore this update
 				if (!agents.ContainsKey(agentData.agent_id))
 				{
-					DebugLogs.LogError("[GeeoWS:WebSocketMessage_AgentUpdate] An agent left the viewport ›› Identifier ‘" + agentData.agent_id + "’ does not exist");
-					if (OnError != null) { OnError("An agent left the viewport ›› Identifier ‘" + agentData.agent_id + "’ does not exist"); }
-					return;
+					DebugLogs.LogWarning("[GeeoWS:WebSocketMessage_AgentUpdate] Agent ‘" + agentData.agent_id + "’ received a ‘left’ update after another ‘left’ one or no prior ‘entered’ one");
+
+					// Create a new Agent instance and fill its data from the received message
+					agent = new Agent();
+					agent.id = agentData.agent_id;
 				}
+				// If the agent does exist in the agents list, remove this agent from the list
+				else
+				{
+					// Get the agent corresponding to its identifier from the agents list
+					agent = agents[agentData.agent_id];
 
-				// Get the agent corresponding to its identifier for the agents list
-				Agent agent = agents[agentData.agent_id];
-
-				// Remove the agent from the agents list
-				agents.Remove(agentData.agent_id);
+					// Remove the agent from the agents list
+					agents.Remove(agentData.agent_id);
+				}
 
 				// Trigger the OnAgentLeft event if any callback registered to it
 				if (OnAgentLeft != null) { OnAgentLeft(agent); }
@@ -290,20 +305,30 @@ namespace GeeoSdk
 			// If the agent just moved in the viewport
 			else
 			{
-				// Ensure the agent does exist in the agents list
+				// If the agent doesn't exist in the agents list, add this agent to the list
 				if (!agents.ContainsKey(agentData.agent_id))
 				{
-					DebugLogs.LogError("[GeeoWS:WebSocketMessage_AgentUpdate] An agent moved in the viewport ›› Identifier ‘" + agentData.agent_id + "’ does not exist");
-					if (OnError != null) { OnError("An agent moved in the viewport ›› Identifier ‘" + agentData.agent_id + "’ does not exist"); }
-					return;
+					DebugLogs.LogWarning("[GeeoWS:WebSocketMessage_AgentUpdate] Agent ‘" + agentData.agent_id + "’ received a ‘moved’ update without any prior ‘entered’ one");
+
+					// Create a new Agent instance and fill its data from the received message
+					agent = new Agent();
+					agent.id = agentData.agent_id;
+					agent.latitude = agentData.pos[1];
+					agent.longitude = agentData.pos[0];
+
+					// Add the new agent to the agents list
+					agents.Add(agentData.agent_id, agent);
 				}
+				// If the agent does exist in the agents list, update this agent's position
+				else
+				{
+					// Get the agent corresponding to its identifier from the agents list
+					agent = agents[agentData.agent_id];
 
-				// Get the agent corresponding to its identifier for the agents list
-				Agent agent = agents[agentData.agent_id];
-
-				// Update agent's data from the received message
-				agent.latitude = agentData.pos[1];
-				agent.longitude = agentData.pos[0];
+					// Update agent's data from the received message
+					agent.latitude = agentData.pos[1];
+					agent.longitude = agentData.pos[0];
+				}
 
 				// Trigger the OnAgentMoved event if any callback registered to it
 				if (OnAgentMoved != null) { OnAgentMoved(agent); }
@@ -316,27 +341,33 @@ namespace GeeoSdk
 		/// <param name="pointOfInterestData">Received message data about a point of interest.</param>
 		private void WebSocketMessage_PointOfInterestUpdate(PointOfInterestJson pointOfInterestData)
 		{
+			PointOfInterest pointOfInterest;
+
 			// If the point of interest just entered the viewport
 			if (pointOfInterestData.entered)
 			{
-				// Ensure the point of interest doesn't exist yet in the points of interest list
+				// If the point of interest already exists in the points of interest list, just ignore this update
 				if (pointsOfInterest.ContainsKey(pointOfInterestData.poi_id))
 				{
-					DebugLogs.LogError("[GeeoWS:WebSocketMessage_PointOfInterestUpdate] A new point of interest entered the viewport ›› Identifier ‘" + pointOfInterestData.poi_id + "’ already exists");
-					if (OnError != null) { OnError("A new point of interest entered the viewport ›› Identifier ‘" + pointOfInterestData.poi_id + "’ already exists"); }
-					return;
+					DebugLogs.LogWarning("[GeeoWS:WebSocketMessage_PointOfInterestUpdate] Point of interest ‘" + pointOfInterestData.poi_id + "’ received 2 ‘entered’ updates without any ‘left’ one");
+
+					// Get the point of interest corresponding to its identifier from the points of interest list
+					pointOfInterest = pointsOfInterest[pointOfInterestData.poi_id];
 				}
+				// If the point of interest doesn't exist in the points of interest list, add this point of interest to the list
+				else
+				{
+					// Create a new PointOfInterest instance and fill its data from the received message
+					pointOfInterest = new PointOfInterest();
+					pointOfInterest.id = pointOfInterestData.poi_id;
+					pointOfInterest.latitude = pointOfInterestData.pos[1];
+					pointOfInterest.longitude = pointOfInterestData.pos[0];
+					pointOfInterest.publicData = pointOfInterestData.publicData;
+					pointOfInterest.creatorId = pointOfInterestData.creator;
 
-				// Create a new PointOfInterest instance and fill its data from the received message
-				PointOfInterest pointOfInterest = new PointOfInterest();
-				pointOfInterest.id = pointOfInterestData.poi_id;
-				pointOfInterest.latitude = pointOfInterestData.pos[1];
-				pointOfInterest.longitude = pointOfInterestData.pos[0];
-				pointOfInterest.publicData = pointOfInterestData.publicData;
-				pointOfInterest.creatorId = pointOfInterestData.creator;
-
-				// Add the new point of interest to the points of interest list
-				pointsOfInterest.Add(pointOfInterestData.poi_id, pointOfInterest);
+					// Add the new point of interest to the points of interest list
+					pointsOfInterest.Add(pointOfInterestData.poi_id, pointOfInterest);
+				}
 
 				// Trigger the OnPointOfInterestEntered event if any callback registered to it
 				if (OnPointOfInterestEntered != null) { OnPointOfInterestEntered(pointOfInterest); }
@@ -344,19 +375,24 @@ namespace GeeoSdk
 			// If the point of interest just left the viewport
 			else if (pointOfInterestData.left)
 			{
-				// Ensure the point of interest does exist in the points of interest list
+				// If the point of interest doesn't exist in the points of interest list, just ignore this update
 				if (!pointsOfInterest.ContainsKey(pointOfInterestData.poi_id))
 				{
-					DebugLogs.LogError("[GeeoWS:WebSocketMessage_PointOfInterestUpdate] A point of interest left the viewport ›› Identifier ‘" + pointOfInterestData.poi_id + "’ does not exist");
-					if (OnError != null) { OnError("A point of interest left the viewport ›› Identifier ‘" + pointOfInterestData.poi_id + "’ does not exist"); }
-					return;
+					DebugLogs.LogWarning("[GeeoWS:WebSocketMessage_PointOfInterestUpdate] Point of interest ‘" + pointOfInterestData.poi_id + "’ received a ‘left’ update after another ‘left’ one or no prior ‘entered’ one");
+
+					// Create a new PointOfInterest instance and fill its data from the received message
+					pointOfInterest = new PointOfInterest();
+					pointOfInterest.id = pointOfInterestData.poi_id;
 				}
+				// If the point of interest does exist in the points of interest list, remove this point of interest from the list
+				else
+				{
+					// Get the point of interest corresponding to its identifier from the points of interest list
+					pointOfInterest = pointsOfInterest[pointOfInterestData.poi_id];
 
-				// Get the point of interest corresponding to its identifier for the points of interest list
-				PointOfInterest pointOfInterest = pointsOfInterest[pointOfInterestData.poi_id];
-
-				// Remove the point of interest from the points of interest list
-				pointsOfInterest.Remove(pointOfInterestData.poi_id);
+					// Remove the point of interest from the points of interest list
+					pointsOfInterest.Remove(pointOfInterestData.poi_id);
+				}
 
 				// Trigger the OnPointOfInterestLeft event if any callback registered to it
 				if (OnPointOfInterestLeft != null) { OnPointOfInterestLeft(pointOfInterest); }
@@ -572,7 +608,7 @@ namespace GeeoSdk
 		}
 
 		/// <summary>
-		/// Create a new point of interest.
+		/// The connected agent creates a new point of interest.
 		/// </summary>
 		/// <param name="id">Point of interest's identifier.</param>
 		/// <param name="latitude">Point of interest's location latitude.</param>
@@ -585,7 +621,7 @@ namespace GeeoSdk
 		}
 
 		/// <summary>
-		/// Remove an existing point of interest.
+		/// The connected agent removes an existing point of interest. (only the creator agent is allowed to do this)
 		/// </summary>
 		/// <param name="id">Point of interest's identifier.</param>
 		public void RemovePointOfInterest(string id)
@@ -595,7 +631,7 @@ namespace GeeoSdk
 		}
 
 		/// <summary>
-		/// Create a new air beacon.
+		/// The connected agent creates a new air beacon.
 		/// </summary>
 		/// <param name="id">Air beacon's identifier.</param>
 		/// <param name="latitude1">Air beacon's first latitude bound.</param>
@@ -610,7 +646,7 @@ namespace GeeoSdk
 		}
 
 		/// <summary>
-		/// Remove an existing air beacon.
+		/// The connected agent removes an existing air beacon. (only the creator agent is allowed to do this)
 		/// </summary>
 		/// <param name="id">Air beacon's identifier.</param>
 		public void RemoveAirBeacon(string id)

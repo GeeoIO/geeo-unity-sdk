@@ -422,7 +422,7 @@ namespace GeeoDemo
 		private const double longitudeMax = 180d;
 
 		// Time to wait (in seconds) between each update of the user location from the location service
-		[SerializeField] private float userLocationUpdatesDelay = 1f;
+		[SerializeField] [Range(5f, 600f)] private float userLocationUpdatesDelay = 10f;
 
 		// If continuous user locations should be simulated instead of using the location service
 		[SerializeField] private bool useSimulatedUserLocation = false;

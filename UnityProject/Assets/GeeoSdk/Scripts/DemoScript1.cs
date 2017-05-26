@@ -12,7 +12,7 @@ namespace GeeoDemo
 	/// A sample script to demonstrate how to use the Geeo SDK's features.
 	/// Needs to be put as a component of an active object in the scene.
 	/// </summary>
-	public class DemoScript : MonoBehaviour
+	public class DemoScript1 : MonoBehaviour
 	{
 		#region Geeo SDK Initialization
 		// Format to get an ISO 8601 DateTime string

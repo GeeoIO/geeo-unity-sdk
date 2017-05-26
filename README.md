@@ -97,3 +97,4 @@ The Geeo SDK and associated Unity demo project use a custom implementation based
 - **Json parser**: [LitJson](https://lbv.github.io/litjson/)
 - **WebGL platform WebSocket handling**: our customized version of [Simple Web Sockets for Unity WebGL](https://www.assetstore.unity3d.com/en/#!/content/38367)
 - **Other platforms WebSocket handling**: [STA WebSocket-Sharp](https://github.com/sta/websocket-sharp)
+- **World map (DemoScene1)**: [OpenStreetMap](http://www.openstreetmap.org)

@@ -18,6 +18,9 @@ namespace GeeoDemo
 		// Format to get an ISO 8601 DateTime string
 		private const string dateTimeFormat_Iso8601 = "yyyy-MM-ddTHH:mm:ss.fffZ";
 
+		// If the Geeo SDK is connected
+		private bool geeoSdkConnected = false;
+
 		/// <summary>
 		/// At Start, initialize the Geeo SDK.
 		/// </summary>
@@ -102,6 +105,7 @@ namespace GeeoDemo
 		{
 			Debug.Log("[DemoScript:Geeo_OnConnected] Geeo connected ›› Starting user location: " + lastUserLocation + ", Starting user view: " + lastUserView);
 			DisplayStatus(Status.Geeo, StatusState.Started);
+			geeoSdkConnected = true;
 
 			// Show the displayed used location
 			DisplayUserLocation(true);
@@ -121,6 +125,7 @@ namespace GeeoDemo
 		{
 			Debug.LogWarning("[DemoScript:Geeo_OnDisconnected] Geeo disconnected");
 			DisplayStatus(Status.Geeo, StatusState.Stopped);
+			geeoSdkConnected = false;
 
 			// Hide the displayed used location
 			DisplayUserLocation(false);
@@ -261,8 +266,8 @@ namespace GeeoDemo
 		/// </summary>
 		private void Update()
 		{
-			// If the left mouse button is clicked, add a point of interest to the clicked coordinates
-			if (Input.GetMouseButtonDown(0))
+			// If the left mouse button is clicked and a Geeo connection is established, add a point of interest to the clicked coordinates
+			if (Input.GetMouseButtonDown(0) && geeoSdkConnected)
 			{
 				// Convert the mouse screen X/Y position to world X/Y position
 				Vector3 mousePosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);

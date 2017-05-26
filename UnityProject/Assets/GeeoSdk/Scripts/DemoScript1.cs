@@ -465,19 +465,8 @@ namespace GeeoDemo
 				lastUserLocation.latitude = Math.Min(Math.Max(lastUserLocation.latitude + (double)UnityEngine.Random.Range(-simulatedUserLocationMoveRange, simulatedUserLocationMoveRange), latitudeMin), latitudeMax);
 				lastUserLocation.longitude = Math.Min(Math.Max(lastUserLocation.longitude + (double)UnityEngine.Random.Range(-simulatedUserLocationMoveRange, simulatedUserLocationMoveRange), longitudeMin), longitudeMax);
 
-				// Calculate the new user location point's position by converting GPS coordinates to X/Y ones
-				float userLocationX, userLocationY;
-				LatitudeLongitudeToXY(lastUserLocation.latitude, lastUserLocation.longitude, out userLocationX, out userLocationY);
-
-				// Calculate the new user view data in allowed GPS bounds
-				float userViewX1 = Math.Min(Math.Max(userLocationX - userViewExtentX, 0f), (float)(displayMapSize - 1d));
-				float userViewX2 = Math.Min(Math.Max(userLocationX + userViewExtentX, 0f), (float)(displayMapSize - 1d));
-				float userViewY1 = Math.Min(Math.Max(userLocationY - userViewExtentY, 0f), (float)(displayMapSize - 1d));
-				float userViewY2 = Math.Min(Math.Max(userLocationY + userViewExtentY, 0f), (float)(displayMapSize - 1d));
-
-				// Update the user view point's position by converting X/Y coordinates to GPS ones
-				XYToLatitudeLongitude(userViewX1, userViewY1, out lastUserView.latitude1, out lastUserView.longitude1);
-				XYToLatitudeLongitude(userViewX2, userViewY2, out lastUserView.latitude2, out lastUserView.longitude2);
+				// Calculate the current user view, based on its new location
+				UserViewUpdate();
 
 				Debug.Log("[DemoScript:StartSimulatedUserLocationUpdate] Last user location: " + lastUserLocation + ", Last user view: " + lastUserView);
 
@@ -538,19 +527,8 @@ namespace GeeoDemo
 					lastUserLocation.latitude = (double)Input.location.lastData.latitude;
 					lastUserLocation.longitude = (double)Input.location.lastData.longitude;
 
-					// Calculate the new user location point's position by converting GPS coordinates to X/Y ones
-					float userLocationX, userLocationY;
-					LatitudeLongitudeToXY(lastUserLocation.latitude, lastUserLocation.longitude, out userLocationX, out userLocationY);
-
-					// Calculate the new user view data in allowed GPS bounds
-					float userViewX1 = Math.Min(Math.Max(userLocationX - userViewExtentX, 0f), (float)(displayMapSize - 1d));
-					float userViewX2 = Math.Min(Math.Max(userLocationX + userViewExtentX, 0f), (float)(displayMapSize - 1d));
-					float userViewY1 = Math.Min(Math.Max(userLocationY - userViewExtentY, 0f), (float)(displayMapSize - 1d));
-					float userViewY2 = Math.Min(Math.Max(userLocationY + userViewExtentY, 0f), (float)(displayMapSize - 1d));
-
-					// Update the user view point's position by converting X/Y coordinates to GPS ones
-					XYToLatitudeLongitude(userViewX1, userViewY1, out lastUserView.latitude1, out lastUserView.longitude1);
-					XYToLatitudeLongitude(userViewX2, userViewY2, out lastUserView.latitude2, out lastUserView.longitude2);
+					// Calculate the current user view, based on its new location
+					UserViewUpdate();
 
 					Debug.Log("[DemoScript:StartUserLocationUpdate] Last user location: " + lastUserLocation + ", Last user view: " + lastUserView);
 
@@ -586,6 +564,26 @@ namespace GeeoDemo
 			}
 
 			DisplayStatus(Status.Location, StatusState.Stopped);
+		}
+
+		/// <summary>
+		/// Update current user view, based on its location.
+		/// </summary>
+		private void UserViewUpdate()
+		{
+			// Calculate the new user location point's position by converting GPS coordinates to X/Y ones
+			float userLocationX, userLocationY;
+			LatitudeLongitudeToXY(lastUserLocation.latitude, lastUserLocation.longitude, out userLocationX, out userLocationY);
+
+			// Calculate the new user view data in allowed GPS bounds
+			float userViewX1 = Math.Min(Math.Max(userLocationX - userViewExtentX, 0f), (float)(displayMapSize - 1d));
+			float userViewX2 = Math.Min(Math.Max(userLocationX + userViewExtentX, 0f), (float)(displayMapSize - 1d));
+			float userViewY1 = Math.Min(Math.Max(userLocationY - userViewExtentY, 0f), (float)(displayMapSize - 1d));
+			float userViewY2 = Math.Min(Math.Max(userLocationY + userViewExtentY, 0f), (float)(displayMapSize - 1d));
+
+			// Update the user view point's position by converting X/Y coordinates to GPS ones
+			XYToLatitudeLongitude(userViewX1, userViewY1, out lastUserView.latitude1, out lastUserView.longitude1);
+			XYToLatitudeLongitude(userViewX2, userViewY2, out lastUserView.latitude2, out lastUserView.longitude2);
 		}
 		#endregion
 

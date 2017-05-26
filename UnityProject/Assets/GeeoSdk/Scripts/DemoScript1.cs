@@ -9,8 +9,9 @@ using GeeoSdk;
 namespace GeeoDemo
 {
 	/// <summary>
-	/// A sample script to demonstrate how to use the Geeo SDK's features.
-	/// Needs to be put as a component of an active object in the scene.
+	/// A sample script to demonstrate how to use the Geeo SDK's features. Needs to be put as a component of an active object in the scene.
+	/// This sample uses a single world map to allow easy by-click point of interest creation by converting X/Y coordinates to GPS ones.
+	/// This sample uses all agents and points of interest entered/moved/left events to list and display them dynamically as soon as they update.
 	/// </summary>
 	public class DemoScript1 : MonoBehaviour
 	{
@@ -262,11 +263,11 @@ namespace GeeoDemo
 		}
 
 		/// <summary>
-		/// At each Update, check if the left mouse button is clicked to add a point of interest.
+		/// At each Update, check if the left mouse button is clicked to create a point of interest.
 		/// </summary>
 		private void Update()
 		{
-			// If the left mouse button is clicked and a Geeo connection is established, add a point of interest to the clicked coordinates
+			// If the left mouse button is clicked and a Geeo connection is established, create a point of interest to the clicked coordinates
 			if (Input.GetMouseButtonDown(0) && geeoSdkConnected)
 			{
 				// Convert the mouse screen X/Y position to world X/Y position
@@ -591,9 +592,6 @@ namespace GeeoDemo
 		// Default depth of user's view display lines
 		private const float userViewDisplayLinesDefaultZ = -1f;
 
-		// If the camera must follow the displayed user location
-		[SerializeField] private bool userLocationCameraFollowing = true;
-
 		// The main camera
 		[SerializeField] private Camera mainCamera;
 
@@ -630,9 +628,8 @@ namespace GeeoDemo
 					new Vector3(userViewX1, userViewY1, userViewDisplayLinesDefaultZ)
 				});
 
-				// If enabled, set camera's position on top of the new user location
-				if (userLocationCameraFollowing)
-					mainCamera.transform.position = new Vector3(lastUserLocation.displayPoint.transform.position.x, lastUserLocation.displayPoint.transform.position.y, mainCamera.transform.position.z);
+				// Set camera's position on top of the new user location
+				mainCamera.transform.position = new Vector3(lastUserLocation.displayPoint.transform.position.x, lastUserLocation.displayPoint.transform.position.y, mainCamera.transform.position.z);
 				
 				// Show the user location point
 				if (!lastUserLocation.displayPoint.activeSelf)

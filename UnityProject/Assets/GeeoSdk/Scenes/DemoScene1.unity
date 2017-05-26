@@ -1291,7 +1291,7 @@ GameObject:
   - component: {fileID: 1583065968}
   - component: {fileID: 1583065967}
   m_Layer: 0
-  m_Name: DemoScript
+  m_Name: DemoScript1
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1315,7 +1315,6 @@ MonoBehaviour:
   defaultUserLocationLongitude: -16.717376708984375
   userViewExtentX: 60
   userViewExtentY: 30
-  userLocationCameraFollowing: 1
   mainCamera: {fileID: 722565089}
   displayMap: {fileID: 1683099120}
   displayMapSize: 1024

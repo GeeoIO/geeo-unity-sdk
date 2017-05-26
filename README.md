@@ -98,3 +98,4 @@ The Geeo SDK and associated Unity demo project use a custom implementation based
 - **WebGL platform WebSocket handling**: our customized version of [Simple Web Sockets for Unity WebGL](https://www.assetstore.unity3d.com/en/#!/content/38367)
 - **Other platforms WebSocket handling**: [STA WebSocket-Sharp](https://github.com/sta/websocket-sharp)
 - **World map (DemoScene1)**: [OpenStreetMap](http://www.openstreetmap.org)
+- **World map (DemoScene2)**: [Google Static Maps](https://developers.google.com/maps/documentation/static-maps/)

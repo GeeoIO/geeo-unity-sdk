@@ -500,6 +500,9 @@ namespace GeeoDemo
 		[SerializeField] [Range(10f, 500f)] private double mapCenterLatitudeMoveRange = 200d;
 		[SerializeField] [Range(20f, 1000f)] private double mapCenterLongitudeMoveRange = 400d;
 
+		// How much markers are allowed to be displayed on the map
+		[SerializeField] private int mapMarkersMax = 200;
+
 		// The map display UI elements
 		[SerializeField] private Button mapZoomInButton;
 		[SerializeField] private Button mapZoomOutButton;
@@ -525,6 +528,8 @@ namespace GeeoDemo
 			// Define the OnViewUpdated delegate
 			onViewUpdatedDelegate = delegate()
 			{
+				int mapMarkersCount = 1;
+
 				// Unregister from the OnViewUpdated event
 				Geeo.Instance.ws.OnViewUpdated -= onViewUpdatedDelegate;
 
@@ -538,7 +543,14 @@ namespace GeeoDemo
 				List<GoogleStaticMaps.Location> agentsMarkersLocations = new List<GoogleStaticMaps.Location>();
 
 				foreach (Agent agent in Geeo.Instance.ws.Agents)
+				{
+					// Ensure to set no more markers than the allowed count
+					if (mapMarkersCount >= mapMarkersMax)
+						break;
+					
 					agentsMarkersLocations.Add(new GoogleStaticMaps.Location(agent.latitude, agent.longitude));
+					++mapMarkersCount;
+				}
 
 				GoogleStaticMaps.MarkersGroup agentsMarkers = new GoogleStaticMaps.MarkersGroup(agentsMarkersLocations, GoogleStaticMaps.MarkerColor.Yellow, GoogleStaticMaps.MarkerSize.Mid, 'A');
 
@@ -546,7 +558,14 @@ namespace GeeoDemo
 				List<GoogleStaticMaps.Location> pointsOfInterestMarkersLocations = new List<GoogleStaticMaps.Location>();
 
 				foreach (PointOfInterest pointOfInterest in Geeo.Instance.ws.PointsOfInterest)
+				{
+					// Ensure to set no more markers than the allowed count
+					if (mapMarkersCount >= mapMarkersMax)
+						break;
+
 					pointsOfInterestMarkersLocations.Add(new GoogleStaticMaps.Location(pointOfInterest.latitude, pointOfInterest.longitude));
+					++mapMarkersCount;
+				}
 
 				GoogleStaticMaps.MarkersGroup pointsOfInterestMarkers = new GoogleStaticMaps.MarkersGroup(pointsOfInterestMarkersLocations, GoogleStaticMaps.MarkerColor.Blue, GoogleStaticMaps.MarkerSize.Mid, 'P');
 

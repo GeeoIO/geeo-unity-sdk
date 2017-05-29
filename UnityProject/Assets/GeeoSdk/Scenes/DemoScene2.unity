@@ -3134,6 +3134,7 @@ MonoBehaviour:
   mainCamera: {fileID: 722565089}
   mapCenterLatitudeMoveRange: 200
   mapCenterLongitudeMoveRange: 400
+  mapMarkersMax: 200
   mapZoomInButton: {fileID: 794210055}
   mapZoomOutButton: {fileID: 2005643326}
   mapCenterToNorthButton: {fileID: 922506128}

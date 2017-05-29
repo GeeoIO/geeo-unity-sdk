@@ -10,7 +10,7 @@ namespace GeeoSdk
 		/// <summary>
 		/// Current Geeo SDK's version.
 		/// </summary>
-		public const string sdkVersion = "0.1";
+		public const string sdkVersion = "1.0";
 
 		// Geeo SDK's debug messages logging level
 		[SerializeField] private LogLevel logLevel = LogLevel.Verbose;

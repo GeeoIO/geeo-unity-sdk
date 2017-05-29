@@ -97,7 +97,7 @@ Geeo has no user database to further protect privacy.
 
 In order to enjoy Geeo SDK's features, the first step to go on is to build the library. Simply open the `GeeoSdk.sln` solution file in the `.\GeeoSdk\` folder (MonoDevelop or Visual Studio Community 2015 will do fine), then run the `Build` command.
 
-Post-build command lines will automatically copy the freshly generated `.DLL` and `.XML` files from the SDK (`.\GeeoSdk\bin\[debug or release]\`) folder to the Unity project plugins (`.\UnityProject\Assets\Plugins\`) one.
+Post-build command lines will automatically copy the freshly generated `.DLL` and `.XML` files from the SDK (`.\GeeoSdk\bin\[debug or release]\`) folder to the Unity demo project plugins (`.\UnityProject\Assets\Plugins\`) one.
 
 ## Demo scenes
 
@@ -107,13 +107,16 @@ Now you are ready to run the Unity project, let's have a look on the 2 available
 - The second one is a *static-based* sample which relies on the *global* update events (`OnViewUpdated`). The point is to get all agents and points of interest data from the Geeo SDK only after a server update has just occurred; and because it needs to regenerate a new map to display the updated points, this sample does not react to every `OnViewUpdated` event, but only does it from time to time (when the map has moved or zoomed in/out, or when the connected agent has moved). This scene also allows to create a new point of interest by entering coordinates on the UI.
 
 ```
-NB: Please keep in mind that, even if Geeo server sends updates every second for the moment, it is not recommended to update the current connected agent and view as often. Also, those demo scenes are only quick-made samples and you should not use them as is in your projects.
+NB: Please keep in mind that, even if Geeo server sends updates every second for the moment,
+it is not recommended to update the current connected agent and view as often.
+Also, those demo scenes are only quick-made samples and you should not use them as is in your projects.
 ```
 
 The 2 demo scenes have several common options you can find on the `DemoScript#` objects. An important option is the `Use Simulated User Location` one. It simply *simulates* periodic moves on the connected agent instead of regularly requesting the device's location from the device's Location Service, making it very useful for testing purposes on desktop or if you can't / don't want to access your device's Location Service.
 
 ```
-NB: Using the device's Location Service may lead to crashes some time after this service has started on some Android devices if you built the project with a Unity version prior to the 5.6 one.
+NB: Using the device's Location Service may lead to crashes some time after this service has started
+on some Android devices if you built the project with a Unity version prior to the 5.6 one.
 ```
 
 ## About third party plugins

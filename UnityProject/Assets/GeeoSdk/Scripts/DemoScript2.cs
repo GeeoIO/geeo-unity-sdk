@@ -525,60 +525,65 @@ namespace GeeoDemo
 			// Disable map control buttons
 			EnableMapButtons(false);
 
-			// Define the OnViewUpdated delegate
-			onViewUpdatedDelegate = delegate()
+			// Only update the map display if not already in an update
+			if (onViewUpdatedDelegate == null)
 			{
-				int mapMarkersCount = 1;
-
-				// Unregister from the OnViewUpdated event
-				Geeo.Instance.ws.OnViewUpdated -= onViewUpdatedDelegate;
-
-				// Define the user map marker
-				List<GoogleStaticMaps.Location> userMarkerLocation = new List<GoogleStaticMaps.Location>();
-				userMarkerLocation.Add(new GoogleStaticMaps.Location(lastUserLocation.latitude, lastUserLocation.longitude));
-
-				GoogleStaticMaps.MarkersGroup userMarker = new GoogleStaticMaps.MarkersGroup(userMarkerLocation, GoogleStaticMaps.MarkerColor.Green, GoogleStaticMaps.MarkerSize.Default, 'U');
-
-				// Define the agents map markers
-				List<GoogleStaticMaps.Location> agentsMarkersLocations = new List<GoogleStaticMaps.Location>();
-
-				foreach (Agent agent in Geeo.Instance.ws.Agents)
+				// Define the OnViewUpdated delegate
+				onViewUpdatedDelegate = delegate()
 				{
-					// Ensure to set no more markers than the allowed count
-					if (mapMarkersCount >= mapMarkersMax)
-						break;
-					
-					agentsMarkersLocations.Add(new GoogleStaticMaps.Location(agent.latitude, agent.longitude));
-					++mapMarkersCount;
-				}
+					int mapMarkersCount = 1;
 
-				GoogleStaticMaps.MarkersGroup agentsMarkers = new GoogleStaticMaps.MarkersGroup(agentsMarkersLocations, GoogleStaticMaps.MarkerColor.Yellow, GoogleStaticMaps.MarkerSize.Mid, 'A');
+					// Unregister from the OnViewUpdated event
+					Geeo.Instance.ws.OnViewUpdated -= onViewUpdatedDelegate;
+					onViewUpdatedDelegate = null;
 
-				// Define the points of interest map markers
-				List<GoogleStaticMaps.Location> pointsOfInterestMarkersLocations = new List<GoogleStaticMaps.Location>();
+					// Define the user map marker
+					List<GoogleStaticMaps.Location> userMarkerLocation = new List<GoogleStaticMaps.Location>();
+					userMarkerLocation.Add(new GoogleStaticMaps.Location(lastUserLocation.latitude, lastUserLocation.longitude));
 
-				foreach (PointOfInterest pointOfInterest in Geeo.Instance.ws.PointsOfInterest)
-				{
-					// Ensure to set no more markers than the allowed count
-					if (mapMarkersCount >= mapMarkersMax)
-						break;
+					GoogleStaticMaps.MarkersGroup userMarker = new GoogleStaticMaps.MarkersGroup(userMarkerLocation, GoogleStaticMaps.MarkerColor.Green, GoogleStaticMaps.MarkerSize.Default, 'U');
 
-					pointsOfInterestMarkersLocations.Add(new GoogleStaticMaps.Location(pointOfInterest.latitude, pointOfInterest.longitude));
-					++mapMarkersCount;
-				}
+					// Define the agents map markers
+					List<GoogleStaticMaps.Location> agentsMarkersLocations = new List<GoogleStaticMaps.Location>();
 
-				GoogleStaticMaps.MarkersGroup pointsOfInterestMarkers = new GoogleStaticMaps.MarkersGroup(pointsOfInterestMarkersLocations, GoogleStaticMaps.MarkerColor.Blue, GoogleStaticMaps.MarkerSize.Mid, 'P');
+					foreach (Agent agent in Geeo.Instance.ws.Agents)
+					{
+						// Ensure to set no more markers than the allowed count
+						if (mapMarkersCount >= mapMarkersMax)
+							break;
+						
+						agentsMarkersLocations.Add(new GoogleStaticMaps.Location(agent.latitude, agent.longitude));
+						++mapMarkersCount;
+					}
 
-				// Display given coordinates' surrounding map
-				if (!double.IsNaN(centerLatitude) && !double.IsNaN(centerLongitude))
-					googleMap.RefreshMapDisplay(centerLatitude, centerLongitude, userMarker, agentsMarkers, pointsOfInterestMarkers);
-				// Display user location's surrounding map
-				else
-					googleMap.RefreshMapDisplay(lastUserLocation.latitude, lastUserLocation.longitude, userMarker, agentsMarkers, pointsOfInterestMarkers);
-			};
+					GoogleStaticMaps.MarkersGroup agentsMarkers = new GoogleStaticMaps.MarkersGroup(agentsMarkersLocations, GoogleStaticMaps.MarkerColor.Yellow, GoogleStaticMaps.MarkerSize.Mid, 'A');
 
-			// Register to the OnViewUpdated event to wait for the next Geeo SDK's agents and points of interest update
-			Geeo.Instance.ws.OnViewUpdated += onViewUpdatedDelegate;
+					// Define the points of interest map markers
+					List<GoogleStaticMaps.Location> pointsOfInterestMarkersLocations = new List<GoogleStaticMaps.Location>();
+
+					foreach (PointOfInterest pointOfInterest in Geeo.Instance.ws.PointsOfInterest)
+					{
+						// Ensure to set no more markers than the allowed count
+						if (mapMarkersCount >= mapMarkersMax)
+							break;
+
+						pointsOfInterestMarkersLocations.Add(new GoogleStaticMaps.Location(pointOfInterest.latitude, pointOfInterest.longitude));
+						++mapMarkersCount;
+					}
+
+					GoogleStaticMaps.MarkersGroup pointsOfInterestMarkers = new GoogleStaticMaps.MarkersGroup(pointsOfInterestMarkersLocations, GoogleStaticMaps.MarkerColor.Blue, GoogleStaticMaps.MarkerSize.Mid, 'P');
+
+					// Display given coordinates' surrounding map
+					if (!double.IsNaN(centerLatitude) && !double.IsNaN(centerLongitude))
+						googleMap.RefreshMapDisplay(centerLatitude, centerLongitude, userMarker, agentsMarkers, pointsOfInterestMarkers);
+					// Display user location's surrounding map
+					else
+						googleMap.RefreshMapDisplay(lastUserLocation.latitude, lastUserLocation.longitude, userMarker, agentsMarkers, pointsOfInterestMarkers);
+				};
+
+				// Register to the OnViewUpdated event to wait for the next Geeo SDK's agents and points of interest update
+				Geeo.Instance.ws.OnViewUpdated += onViewUpdatedDelegate;
+			}
 		}
 
 		/// <summary>

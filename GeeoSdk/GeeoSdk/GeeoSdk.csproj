@@ -21,20 +21,20 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <DocumentationFile>bin\Debug\GeeoSdk.xml</DocumentationFile>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
     <OutputPath>bin\Release\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <DocumentationFile>bin\Release\GeeoSdk.XML</DocumentationFile>
+    <DocumentationFile>bin\Release\GeeoSdk.xml</DocumentationFile>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="UnityEngine">
-      <HintPath>C:\Program Files\Unity 5.5\Editor\Data\Managed\UnityEngine.dll</HintPath>
+      <HintPath>C:\Program Files\Unity 5.6\Editor\Data\Managed\UnityEngine.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
@@ -146,9 +146,10 @@
     <PostBuildEvent>md $(SolutionDir)..\UnityProject\Assets\Plugins
 if $(ConfigurationName) == Debug (
     copy $(TargetDir)\GeeoSdk.dll $(SolutionDir)..\UnityProject\Assets\Plugins\GeeoSdk-Debug.dll
+    copy $(TargetDir)\GeeoSdk.xml $(SolutionDir)..\UnityProject\Assets\Plugins\GeeoSdk-Debug.xml
 ) else (
     copy $(TargetDir)\GeeoSdk.dll $(SolutionDir)..\UnityProject\Assets\Plugins\GeeoSdk.dll
-    copy $(TargetDir)\GeeoSdk.XML $(SolutionDir)..\UnityProject\Assets\Plugins\GeeoSdk.xml
+    copy $(TargetDir)\GeeoSdk.xml $(SolutionDir)..\UnityProject\Assets\Plugins\GeeoSdk.xml
 )</PostBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

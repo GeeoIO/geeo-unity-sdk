@@ -45,15 +45,15 @@ using System.Text;
 namespace WebSocketSharp.Net.WebSockets
 {
   /// <summary>
-  /// Provides the properties used to access the information in
-  /// a WebSocket handshake request received by the <see cref="TcpListener"/>.
+  /// Provides the access to the information in a WebSocket handshake request to
+  /// a <see cref="TcpListener"/> instance.
   /// </summary>
   internal class TcpListenerWebSocketContext : WebSocketContext
   {
     #region Private Fields
 
     private CookieCollection    _cookies;
-    private Logger              _logger;
+    private Logger              _log;
     private NameValueCollection _queryString;
     private HttpRequest         _request;
     private bool                _secure;
@@ -72,17 +72,20 @@ namespace WebSocketSharp.Net.WebSockets
       string protocol,
       bool secure,
       ServerSslConfiguration sslConfig,
-      Logger logger
+      Logger log
     )
     {
       _tcpClient = tcpClient;
       _secure = secure;
-      _logger = logger;
+      _log = log;
 
       var netStream = tcpClient.GetStream ();
       if (secure) {
-        var sslStream =
-          new SslStream (netStream, false, sslConfig.ClientCertificateValidationCallback);
+        var sslStream = new SslStream (
+                          netStream,
+                          false,
+                          sslConfig.ClientCertificateValidationCallback
+                        );
 
         sslStream.AuthenticateAsServer (
           sslConfig.ServerCertificate,
@@ -98,11 +101,6 @@ namespace WebSocketSharp.Net.WebSockets
       }
 
       _request = HttpRequest.Read (_stream, 90000);
-      _uri =
-        HttpUtility.CreateRequestUrl (
-          _request.RequestUri, _request.Headers["Host"], _request.IsWebSocketRequest, secure
-        );
-
       _websocket = new WebSocket (this, protocol);
     }
 
@@ -112,7 +110,7 @@ namespace WebSocketSharp.Net.WebSockets
 
     internal Logger Log {
       get {
-        return _logger;
+        return _log;
       }
     }
 
@@ -223,20 +221,28 @@ namespace WebSocketSharp.Net.WebSockets
     }
 
     /// <summary>
-    /// Gets the query string included in the request.
+    /// Gets the query string included in the handshake request.
     /// </summary>
     /// <value>
-    /// A <see cref="NameValueCollection"/> that contains the query string parameters.
+    ///   <para>
+    ///   A <see cref="NameValueCollection"/> that contains the query
+    ///   parameters.
+    ///   </para>
+    ///   <para>
+    ///   An empty collection if not included.
+    ///   </para>
     /// </value>
     public override NameValueCollection QueryString {
       get {
-        return _queryString
-               ?? (
-                 _queryString =
-                   HttpUtility.InternalParseQueryString (
-                     _uri != null ? _uri.Query : null, Encoding.UTF8
-                   )
-               );
+        if (_queryString == null) {
+          var uri = RequestUri;
+          _queryString = HttpUtility.InternalParseQueryString (
+                           uri != null ? uri.Query : null,
+                           Encoding.UTF8
+                         );
+        }
+
+        return _queryString;
       }
     }
 
@@ -244,10 +250,24 @@ namespace WebSocketSharp.Net.WebSockets
     /// Gets the URI requested by the client.
     /// </summary>
     /// <value>
-    /// A <see cref="Uri"/> that represents the requested URI.
+    ///   <para>
+    ///   A <see cref="Uri"/> that represents the URI parsed from the request.
+    ///   </para>
+    ///   <para>
+    ///   <see langword="null"/> if the URI cannot be parsed.
+    ///   </para>
     /// </value>
     public override Uri RequestUri {
       get {
+        if (_uri == null) {
+          _uri = HttpUtility.CreateRequestUrl (
+                   _request.RequestUri,
+                   _request.Headers["Host"],
+                   _request.IsWebSocketRequest,
+                   _secure
+                 );
+        }
+
         return _uri;
       }
     }
@@ -269,22 +289,31 @@ namespace WebSocketSharp.Net.WebSockets
     }
 
     /// <summary>
-    /// Gets the values of the Sec-WebSocket-Protocol header included in the request.
+    /// Gets the names of the subprotocols from the Sec-WebSocket-Protocol
+    /// header included in the handshake request.
     /// </summary>
-    /// <remarks>
-    /// This property represents the subprotocols requested by the client.
-    /// </remarks>
     /// <value>
-    /// An <see cref="T:System.Collections.Generic.IEnumerable{string}"/> instance that provides
-    /// an enumerator which supports the iteration over the values of the Sec-WebSocket-Protocol
-    /// header.
+    ///   <para>
+    ///   An <see cref="T:System.Collections.Generic.IEnumerable{string}"/>
+    ///   instance.
+    ///   </para>
+    ///   <para>
+    ///   It provides an enumerator which supports the iteration over
+    ///   the collection of the names of the subprotocols.
+    ///   </para>
     /// </value>
     public override IEnumerable<string> SecWebSocketProtocols {
       get {
-        var protocols = _request.Headers["Sec-WebSocket-Protocol"];
-        if (protocols != null) {
-          foreach (var protocol in protocols.Split (','))
-            yield return protocol.Trim ();
+        var val = _request.Headers["Sec-WebSocket-Protocol"];
+        if (val == null || val.Length == 0)
+          yield break;
+
+        foreach (var elm in val.Split (',')) {
+          var protocol = elm.Trim ();
+          if (protocol.Length == 0)
+            continue;
+
+          yield return protocol;
         }
       }
     }
@@ -341,8 +370,8 @@ namespace WebSocketSharp.Net.WebSockets
     }
 
     /// <summary>
-    /// Gets the <see cref="WebSocketSharp.WebSocket"/> instance used for
-    /// two-way communication between client and server.
+    /// Gets the WebSocket instance used for two-way communication between
+    /// the client and server.
     /// </summary>
     /// <value>
     /// A <see cref="WebSocketSharp.WebSocket"/>.
@@ -427,12 +456,11 @@ namespace WebSocketSharp.Net.WebSockets
     #region Public Methods
 
     /// <summary>
-    /// Returns a <see cref="string"/> that represents
-    /// the current <see cref="TcpListenerWebSocketContext"/>.
+    /// Returns a string that represents the current instance.
     /// </summary>
     /// <returns>
-    /// A <see cref="string"/> that represents
-    /// the current <see cref="TcpListenerWebSocketContext"/>.
+    /// A <see cref="string"/> that contains the request line and headers
+    /// included in the handshake request.
     /// </returns>
     public override string ToString ()
     {

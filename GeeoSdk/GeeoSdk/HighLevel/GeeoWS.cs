@@ -33,16 +33,11 @@ namespace GeeoSdk
 			disconnectOnApplicationPause = _disconnectOnApplicationPause;
 
 			// Instantiate a specific WebSocket implement depending on which platform the application is running on
-			switch (Application.platform)
-			{
-				case RuntimePlatform.WebGLPlayer:
-				webSocket = new WebSocket_WebGL();
-				break;
-
-				default:
-				webSocket = new WebSocket_CrossPlatform();
-				break;
-			}
+			#if WEBGL
+			webSocket = new WebSocket_WebGL();
+			#else
+			webSocket = new WebSocket_CrossPlatform();
+			#endif
 		}
 		#endregion
 

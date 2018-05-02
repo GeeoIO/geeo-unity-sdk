@@ -7,14 +7,20 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GeeoSdk", "GeeoSdk\GeeoSdk.
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
-		Debug|Any CPU = Debug|Any CPU
-		Release|Any CPU = Release|Any CPU
+		Debug_CrossPlatform|Any CPU = Debug_CrossPlatform|Any CPU
+		Release_CrossPlatform|Any CPU = Release_CrossPlatform|Any CPU
+		Debug_WebGL|Any CPU = Debug_WebGL|Any CPU
+		Release_WebGL|Any CPU = Release_WebGL|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{58BCE156-3363-405C-B674-1844921B06EC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{58BCE156-3363-405C-B674-1844921B06EC}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{58BCE156-3363-405C-B674-1844921B06EC}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{58BCE156-3363-405C-B674-1844921B06EC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{58BCE156-3363-405C-B674-1844921B06EC}.Debug_CrossPlatform|Any CPU.ActiveCfg = Debug_CrossPlatform|Any CPU
+		{58BCE156-3363-405C-B674-1844921B06EC}.Debug_CrossPlatform|Any CPU.Build.0 = Debug_CrossPlatform|Any CPU
+		{58BCE156-3363-405C-B674-1844921B06EC}.Debug_WebGL|Any CPU.ActiveCfg = Debug_WebGL|Any CPU
+		{58BCE156-3363-405C-B674-1844921B06EC}.Debug_WebGL|Any CPU.Build.0 = Debug_WebGL|Any CPU
+		{58BCE156-3363-405C-B674-1844921B06EC}.Release_CrossPlatform|Any CPU.ActiveCfg = Release_CrossPlatform|Any CPU
+		{58BCE156-3363-405C-B674-1844921B06EC}.Release_CrossPlatform|Any CPU.Build.0 = Release_CrossPlatform|Any CPU
+		{58BCE156-3363-405C-B674-1844921B06EC}.Release_WebGL|Any CPU.ActiveCfg = Release_WebGL|Any CPU
+		{58BCE156-3363-405C-B674-1844921B06EC}.Release_WebGL|Any CPU.Build.0 = Release_WebGL|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

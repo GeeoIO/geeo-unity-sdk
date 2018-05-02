@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿#if WEBGL
+using System.Collections;
 using System.Runtime.InteropServices;
 using System.Text;
 using UnityEngine;
@@ -189,3 +190,4 @@ namespace GeeoSdk
 		#endregion
 	}
 }
+#endif

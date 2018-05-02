@@ -2,7 +2,7 @@
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Configuration Condition=" '$(Configuration)' == '' ">Release_CrossPlatform</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{58BCE156-3363-405C-B674-1844921B06EC}</ProjectGuid>
     <OutputType>Library</OutputType>
@@ -13,23 +13,41 @@
     <FileAlignment>512</FileAlignment>
     <TargetFrameworkProfile />
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug_CrossPlatform|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
-    <OutputPath>bin\Debug\</OutputPath>
+    <OutputPath>bin\Debug_CrossPlatform\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <DocumentationFile>bin\Debug\GeeoSdk.xml</DocumentationFile>
+    <DocumentationFile>bin\Debug_CrossPlatform\GeeoSdk.xml</DocumentationFile>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release_CrossPlatform|AnyCPU' ">
     <Optimize>true</Optimize>
-    <OutputPath>bin\Release\</OutputPath>
+    <OutputPath>bin\Release_CrossPlatform\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <DocumentationFile>bin\Release\GeeoSdk.xml</DocumentationFile>
+    <DocumentationFile>bin\Release_CrossPlatform\GeeoSdk.xml</DocumentationFile>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug_WebGL|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug_WebGL\</OutputPath>
+    <DefineConstants>DEBUG;TRACE;WEBGL</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <DocumentationFile>bin\Debug_WebGL\GeeoSdk.xml</DocumentationFile>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release_WebGL|AnyCPU' ">
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release_WebGL\</OutputPath>
+    <DefineConstants>TRACE;WEBGL</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <DocumentationFile>bin\Release_WebGL\GeeoSdk.xml</DocumentationFile>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
@@ -144,12 +162,18 @@
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PostBuildEvent>md $(SolutionDir)..\UnityProject\Assets\Plugins
-if $(ConfigurationName) == Debug (
-    copy $(TargetDir)\GeeoSdk.dll $(SolutionDir)..\UnityProject\Assets\Plugins\GeeoSdk-Debug.dll
-    copy $(TargetDir)\GeeoSdk.xml $(SolutionDir)..\UnityProject\Assets\Plugins\GeeoSdk-Debug.xml
-) else (
-    copy $(TargetDir)\GeeoSdk.dll $(SolutionDir)..\UnityProject\Assets\Plugins\GeeoSdk.dll
-    copy $(TargetDir)\GeeoSdk.xml $(SolutionDir)..\UnityProject\Assets\Plugins\GeeoSdk.xml
+if $(ConfigurationName) == Debug_CrossPlatform (
+    copy $(TargetDir)\GeeoSdk.dll $(SolutionDir)..\UnityProject\Assets\Plugins\GeeoSdk-CrossPlatform-Debug.dll
+    copy $(TargetDir)\GeeoSdk.xml $(SolutionDir)..\UnityProject\Assets\Plugins\GeeoSdk-CrossPlatform-Debug.xml
+) else if $(ConfigurationName) == Release_CrossPlatform (
+    copy $(TargetDir)\GeeoSdk.dll $(SolutionDir)..\UnityProject\Assets\Plugins\GeeoSdk-CrossPlatform.dll
+    copy $(TargetDir)\GeeoSdk.xml $(SolutionDir)..\UnityProject\Assets\Plugins\GeeoSdk-CrossPlatform.xml
+) else if $(ConfigurationName) == Debug_WebGL (
+    copy $(TargetDir)\GeeoSdk.dll $(SolutionDir)..\UnityProject\Assets\Plugins\GeeoSdk-WebGL-Debug.dll
+    copy $(TargetDir)\GeeoSdk.xml $(SolutionDir)..\UnityProject\Assets\Plugins\GeeoSdk-WebGL-Debug.xml
+) else if $(ConfigurationName) == Release_WebGL (
+    copy $(TargetDir)\GeeoSdk.dll $(SolutionDir)..\UnityProject\Assets\Plugins\GeeoSdk-WebGL.dll
+    copy $(TargetDir)\GeeoSdk.xml $(SolutionDir)..\UnityProject\Assets\Plugins\GeeoSdk-WebGL.xml
 )</PostBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

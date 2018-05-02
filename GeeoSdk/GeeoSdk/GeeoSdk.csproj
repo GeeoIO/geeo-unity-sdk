@@ -163,17 +163,17 @@
   <PropertyGroup>
     <PostBuildEvent>md $(SolutionDir)..\UnityProject\Assets\Plugins
 if $(ConfigurationName) == Debug_CrossPlatform (
-    copy $(TargetDir)\GeeoSdk.dll $(SolutionDir)..\UnityProject\Assets\Plugins\GeeoSdk-CrossPlatform-Debug.dll
-    copy $(TargetDir)\GeeoSdk.xml $(SolutionDir)..\UnityProject\Assets\Plugins\GeeoSdk-CrossPlatform-Debug.xml
+    copy $(TargetDir)\GeeoSdk.dll $(SolutionDir)..\UnityProject\Assets\Plugins\GeeoSdk_CrossPlatform_Debug.dll
+    copy $(TargetDir)\GeeoSdk.xml $(SolutionDir)..\UnityProject\Assets\Plugins\GeeoSdk_CrossPlatform_Debug.xml
 ) else if $(ConfigurationName) == Release_CrossPlatform (
-    copy $(TargetDir)\GeeoSdk.dll $(SolutionDir)..\UnityProject\Assets\Plugins\GeeoSdk-CrossPlatform.dll
-    copy $(TargetDir)\GeeoSdk.xml $(SolutionDir)..\UnityProject\Assets\Plugins\GeeoSdk-CrossPlatform.xml
+    copy $(TargetDir)\GeeoSdk.dll $(SolutionDir)..\UnityProject\Assets\Plugins\GeeoSdk_CrossPlatform.dll
+    copy $(TargetDir)\GeeoSdk.xml $(SolutionDir)..\UnityProject\Assets\Plugins\GeeoSdk_CrossPlatform.xml
 ) else if $(ConfigurationName) == Debug_WebGL (
-    copy $(TargetDir)\GeeoSdk.dll $(SolutionDir)..\UnityProject\Assets\Plugins\GeeoSdk-WebGL-Debug.dll
-    copy $(TargetDir)\GeeoSdk.xml $(SolutionDir)..\UnityProject\Assets\Plugins\GeeoSdk-WebGL-Debug.xml
+    copy $(TargetDir)\GeeoSdk.dll $(SolutionDir)..\UnityProject\Assets\Plugins\GeeoSdk_WebGL_Debug.dll
+    copy $(TargetDir)\GeeoSdk.xml $(SolutionDir)..\UnityProject\Assets\Plugins\GeeoSdk_WebGL_Debug.xml
 ) else if $(ConfigurationName) == Release_WebGL (
-    copy $(TargetDir)\GeeoSdk.dll $(SolutionDir)..\UnityProject\Assets\Plugins\GeeoSdk-WebGL.dll
-    copy $(TargetDir)\GeeoSdk.xml $(SolutionDir)..\UnityProject\Assets\Plugins\GeeoSdk-WebGL.xml
+    copy $(TargetDir)\GeeoSdk.dll $(SolutionDir)..\UnityProject\Assets\Plugins\GeeoSdk_WebGL.dll
+    copy $(TargetDir)\GeeoSdk.xml $(SolutionDir)..\UnityProject\Assets\Plugins\GeeoSdk_WebGL.xml
 )</PostBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

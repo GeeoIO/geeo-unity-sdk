@@ -11103,67 +11103,59 @@
             If the current WebSocket is currently opened.
             </summary>
         </member>
-        <member name="M:GeeoSdk.WebSocket_CrossPlatform.OnWebSocketOpened(System.Object,System.EventArgs)">
+        <member name="M:GeeoSdk.WebSocket_WebGL.CheckForErrorsAndMessages">
             <summary>
-            What to do when the current WebSocket is opened.
-            </summary>
-            <param name="sender">Identifier of the instance which sent this event.</param>
-            <param name="eventData">Opened WebSocket event details.</param>
-        </member>
-        <member name="M:GeeoSdk.WebSocket_CrossPlatform.OnErrorOccured(System.Object,WebSocketSharp.ErrorEventArgs)">
-            <summary>
-            What to do when the current WebSocket gets an error.
-            </summary>
-            <param name="sender">Identifier of the instance which sent this event.</param>
-            <param name="errorData">Error WebSocket event details.</param>
-        </member>
-        <member name="M:GeeoSdk.WebSocket_CrossPlatform.OnMessageReceived(System.Object,WebSocketSharp.MessageEventArgs)">
-            <summary>
-            What to do when the current WebSocket receives a message.
-            </summary>
-            <param name="sender">Identifier of the instance which sent this event.</param>
-            <param name="messageData">Message WebSocket event details.</param>
-        </member>
-        <member name="M:GeeoSdk.WebSocket_CrossPlatform.OnWebSocketClosed(System.Object,WebSocketSharp.CloseEventArgs)">
-            <summary>
-            What to do when the current WebSocket is closed.
-            </summary>
-            <param name="sender">Identifier of the instance which sent this event.</param>
-            <param name="closeData">Closed WebSocket event details.</param>
-        </member>
-        <member name="M:GeeoSdk.WebSocket_CrossPlatform.ExecuteWebSocketActions">
-            <summary>
-            Each frame, execute then clear pending WebSocket delegates.
+            Check if any error has occurred or any message has been received.
             </summary>
         </member>
-        <member name="M:GeeoSdk.WebSocket_CrossPlatform.Connect(System.String)">
+        <member name="M:GeeoSdk.WebSocket_WebGL.CheckForErrors">
+            <summary>
+            Check if any error has occurred.
+            </summary>
+        </member>
+        <member name="M:GeeoSdk.WebSocket_WebGL.CheckForMessages">
+            <summary>
+            Check if any message has been received.
+            </summary>
+        </member>
+        <member name="M:GeeoSdk.WebSocket_WebGL.StartRunningCoroutine">
+            <summary>
+            Start checking for errors and messages.
+            </summary>
+        </member>
+        <member name="M:GeeoSdk.WebSocket_WebGL.StopRunningCoroutine">
+            <summary>
+            Stop checking for errors and messages.
+            </summary>
+        </member>
+        <member name="M:GeeoSdk.WebSocket_WebGL.Connect(System.String)">
             <summary>
             Create a new WebSocket and connect with the given URL.
             </summary>
             <param name="url">The endpoint URL to connect to.</param>
         </member>
-        <member name="M:GeeoSdk.WebSocket_CrossPlatform.Send(System.String)">
+        <member name="M:GeeoSdk.WebSocket_WebGL.Send(System.String)">
             <summary>
             Send a message through the current WebSocket.
             </summary>
             <param name="message">The message to send.</param>
         </member>
-        <member name="M:GeeoSdk.WebSocket_CrossPlatform.Close">
+        <member name="M:GeeoSdk.WebSocket_WebGL.Close">
             <summary>
             Close the current WebSocket connection.
             </summary>
         </member>
-        <member name="M:GeeoSdk.WebSocket_CrossPlatform.NetworkCheck">
+        <member name="M:GeeoSdk.WebSocket_WebGL.NetworkCheck">
             <summary>
             Regularly check if the WebSocket is alive to detect potential network disconnections.
             </summary>
         </member>
-        <member name="M:GeeoSdk.WebSocket_CrossPlatform.NetworkCheckStart">
+        <member name="M:GeeoSdk.WebSocket_WebGL.NetworkCheckStart">
             <summary>
             Start the network check loop. (ping)
             </summary>
         </member>
-        <member name="M:GeeoSdk.WebSocket_CrossPlatform.NetworkCheckStop">
+        <member name="M:GeeoSdk.WebSocket_WebGL.NetworkCheckStop">
             <summary>
             Stop the network check loop. (ping)
             </summary>

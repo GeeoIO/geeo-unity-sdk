@@ -510,6 +510,9 @@ namespace GeeoSdk
 		// The Json format for a "move viewport" request: { "viewPosition": [longitude1, latitude1, longitude2, latitude2] }
 		private const string jsonFormat_moveViewport = "{{\"viewPosition\":[{2},{0},{3},{1}]}}";
 
+		// The Json format for a "move agent and viewport" request: { "agentPosition": [longitude, latitude], "viewPosition": [longitude1, latitude1, longitude2, latitude2] }
+		private const string jsonFormat_moveAgentAndViewport = "{{\"agentPosition\":[{1},{0}],\"viewPosition\":[{4},{2},{5},{3}]}}";
+
 		// The Json format for a "create point of interest" request: { "createPOI": { "poi_id": id, "pos": [longitude, latitude], "publicData": publicData} }
 		private const string jsonFormat_createPointOfInterest = "{{\"createPOI\":{{\"poi_id\":\"{0}\",\"pos\":[{2},{1}],\"publicData\":{3}}}}}";
 
@@ -592,7 +595,7 @@ namespace GeeoSdk
 		/// <param name="newLongitude2">New second viewport's longitude bound.</param>
 		public void MoveConnectedViewport(double newLatitude1, double newLatitude2, double newLongitude1, double newLongitude2)
 		{
-			// Update the local currently connected agent viewport
+			// Update the local currently connected viewport location
 			connectedViewport.latitude1 = newLatitude1;
 			connectedViewport.latitude2 = newLatitude2;
 			connectedViewport.longitude1 = newLongitude1;
@@ -600,6 +603,31 @@ namespace GeeoSdk
 
 			// Send a WebSocket message to the Geeo server to update the remote currently connected viewport location
 			webSocket.Send(string.Format(jsonFormat_moveViewport, newLatitude1, newLatitude2, newLongitude1, newLongitude2));
+		}
+
+		/// <summary>
+		/// Move the currently connected agent and viewport to the specified locations.
+		/// </summary>
+		/// <param name="newAgentLatitude">New agent's location latitude.</param>
+		/// <param name="newAgentLongitude">New agent's location longitude.</param>
+		/// <param name="newViewportLatitude1">New first viewport's latitude bound.</param>
+		/// <param name="newViewportLatitude2">New second viewport's latitude bound.</param>
+		/// <param name="newViewportLongitude1">New first viewport's longitude bound.</param>
+		/// <param name="newViewportLongitude2">New second viewport's longitude bound.</param>
+		public void MoveConnectedAgentAndViewport(double newAgentLatitude, double newAgentLongitude, double newViewportLatitude1, double newViewportLatitude2, double newViewportLongitude1, double newViewportLongitude2)
+		{
+			// Update the local currently connected agent location
+			connectedAgent.latitude = newAgentLatitude;
+			connectedAgent.longitude = newAgentLongitude;
+
+			// Update the local currently connected viewport location
+			connectedViewport.latitude1 = newViewportLatitude1;
+			connectedViewport.latitude2 = newViewportLatitude2;
+			connectedViewport.longitude1 = newViewportLongitude1;
+			connectedViewport.longitude2 = newViewportLongitude2;
+
+			// Send a WebSocket message to the Geeo server to update the remote currently connected agent and viewport locations
+			webSocket.Send(string.Format(jsonFormat_moveAgentAndViewport, newAgentLatitude, newAgentLongitude, newViewportLatitude1, newViewportLatitude2, newViewportLongitude1, newViewportLongitude2));
 		}
 
 		/// <summary>

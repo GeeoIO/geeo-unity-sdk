@@ -97,8 +97,7 @@ namespace GeeoDemo
 			DisplayStatus(Status.Geeo, StatusState.Started);
 
 			// To get started, send a move with the default user location and view
-			Geeo_MoveConnectedAgent(lastUserLocation);
-			Geeo_MoveConnectedViewport(lastUserView);
+			Geeo_MoveConnectedAgentAndViewport(lastUserLocation, lastUserView);
 
 			// Update the map display
 			DisplayMap(double.NaN, double.NaN);
@@ -145,23 +144,14 @@ namespace GeeoDemo
 		[SerializeField] private InputField pointOfInterestCreationLongitude;
 
 		/// <summary>
-		/// Update the Geeo's connected agent location.
+		/// Update Geeo's connected agent and viewport locations.
 		/// </summary>
 		/// <param name="currentAgentLocation">The new last known user agent location.</param>
-		private void Geeo_MoveConnectedAgent(UserLocation currentAgentLocation)
-		{
-			// Call the Geeo SDK's API to move the connected agent (user location)
-			Geeo.Instance.ws.MoveConnectedAgent(currentAgentLocation.latitude, currentAgentLocation.longitude);
-		}
-
-		/// <summary>
-		/// Update the Geeo's connected viewport location.
-		/// </summary>
 		/// <param name="currentViewportLocation">The new last known user view location.</param>
-		private void Geeo_MoveConnectedViewport(UserView currentViewportLocation)
+		private void Geeo_MoveConnectedAgentAndViewport(UserLocation currentAgentLocation, UserView currentViewportLocation)
 		{
-			// Call the Geeo SDK's API to move the connected viewport (user view)
-			Geeo.Instance.ws.MoveConnectedViewport(currentViewportLocation.latitude1, currentViewportLocation.latitude2, currentViewportLocation.longitude1, currentViewportLocation.longitude2);
+			// Call Geeo SDK's API to move the connected agent (user location) and viewport (user view)
+			Geeo.Instance.ws.MoveConnectedAgentAndViewport(currentAgentLocation.latitude, currentAgentLocation.longitude, currentViewportLocation.latitude1, currentViewportLocation.latitude2, currentViewportLocation.longitude1, currentViewportLocation.longitude2);
 		}
 
 		/// <summary>
@@ -330,9 +320,8 @@ namespace GeeoDemo
 
 				Debug.Log("[DemoScript:StartSimulatedUserLocationUpdate] Last user location: " + lastUserLocation + ", Last user view: " + lastUserView);
 
-				// Send a move to update the Geeo's user location and view
-				Geeo_MoveConnectedAgent(lastUserLocation);
-				Geeo_MoveConnectedViewport(lastUserView);
+				// Send a move to update Geeo's user location and view
+				Geeo_MoveConnectedAgentAndViewport(lastUserLocation, lastUserView);
 
 				// Update the map display
 				DisplayMap(double.NaN, double.NaN);
@@ -392,9 +381,8 @@ namespace GeeoDemo
 
 					Debug.Log("[DemoScript:StartUserLocationUpdate] Last user location: " + lastUserLocation + ", Last user view: " + lastUserView);
 
-					// Send a move to update the Geeo's user location and view
-					Geeo_MoveConnectedAgent(lastUserLocation);
-					Geeo_MoveConnectedViewport(lastUserView);
+					// Send a move to update Geeo's user location and view
+					Geeo_MoveConnectedAgentAndViewport(lastUserLocation, lastUserView);
 
 					// Update the map display
 					DisplayMap(double.NaN, double.NaN);

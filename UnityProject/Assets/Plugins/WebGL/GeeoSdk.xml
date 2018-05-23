@@ -10951,6 +10951,17 @@
             <param name="newLongitude1">New first viewport's longitude bound.</param>
             <param name="newLongitude2">New second viewport's longitude bound.</param>
         </member>
+        <member name="M:GeeoSdk.GeeoWS.MoveConnectedAgentAndViewport(System.Double,System.Double,System.Double,System.Double,System.Double,System.Double)">
+            <summary>
+            Move the currently connected agent and viewport to the specified locations.
+            </summary>
+            <param name="newAgentLatitude">New agent's location latitude.</param>
+            <param name="newAgentLongitude">New agent's location longitude.</param>
+            <param name="newViewportLatitude1">New first viewport's latitude bound.</param>
+            <param name="newViewportLatitude2">New second viewport's latitude bound.</param>
+            <param name="newViewportLongitude1">New first viewport's longitude bound.</param>
+            <param name="newViewportLongitude2">New second viewport's longitude bound.</param>
+        </member>
         <member name="M:GeeoSdk.GeeoWS.CreatePointOfInterest(System.String,System.Double,System.Double,LitJson.JsonData)">
             <summary>
             The connected agent creates a new point of interest.

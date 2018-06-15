@@ -17,7 +17,7 @@ namespace GeeoSdk
 		private string wsUrl;
 
 		// If the WebSocket connection should be closed when the application focus is lost
-		private bool disconnectOnApplicationPause;
+		public bool disconnectOnApplicationPause;
 
 		// The actual WebSocket
 		private WebSocket webSocket;

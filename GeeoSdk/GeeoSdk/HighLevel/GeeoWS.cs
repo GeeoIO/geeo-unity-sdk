@@ -19,6 +19,9 @@ namespace GeeoSdk
 		// If the WebSocket connection should be closed when the application focus is lost
 		public bool disconnectOnApplicationPause;
 
+		// If regular pings should be sent to check if WebSocket is still alive (should be used for debug purposes only)
+		public bool networkCheckPings;
+
 		// The actual WebSocket
 		private WebSocket webSocket;
 
@@ -27,10 +30,13 @@ namespace GeeoSdk
 		/// </summary>
 		/// <param name="_wsUrl">The WebSocket endpoint URL.</param>
 		/// <param name="_disconnectOnApplicationPause">If the WebSocket connection should be closed when the application focus is lost.</param>
-		public GeeoWS(string _wsUrl, bool _disconnectOnApplicationPause = true)
+		/// <param name="_networkCheckPings">If regular pings should be sent to check if WebSocket is still alive. (should be used for debug purposes only)</param>
+		/// <param name="_networkCheckDelaySeconds">Delay (in seconds) between two network check pings. (5 seconds minimum, 30 seconds advised)</param>
+		public GeeoWS(string _wsUrl, bool _disconnectOnApplicationPause = true, bool _networkCheckPings = false, float _networkCheckDelaySeconds = 30f)
 		{
 			wsUrl = _wsUrl;
 			disconnectOnApplicationPause = _disconnectOnApplicationPause;
+			networkCheckPings = _networkCheckPings;
 
 			// Instantiate a specific WebSocket implement depending on which platform the application is running on
 			#if WEBGL
@@ -38,6 +44,9 @@ namespace GeeoSdk
 			#else
 			webSocket = new WebSocket_CrossPlatform();
 			#endif
+
+			webSocket.networkCheckDelaySeconds = _networkCheckDelaySeconds;
+			webSocket.networkCheckDelayMilliseconds = (int)(_networkCheckDelaySeconds * 1000f);
 		}
 		#endregion
 
@@ -65,7 +74,8 @@ namespace GeeoSdk
 			yield return webSocket.Connect(requestUrl);
 
 			// Start the network check (ping)
-			webSocket.NetworkCheckStart();
+			if (networkCheckPings)
+				webSocket.NetworkCheckStart();
 
 			webSocketConnectCoroutine = null;
 		}
@@ -83,7 +93,8 @@ namespace GeeoSdk
 			}
 
 			// Stop the network check (ping)
-			webSocket.NetworkCheckStop();
+			if (networkCheckPings)
+				webSocket.NetworkCheckStop();
 
 			// Close the WebSocket
 			webSocket.Close();
@@ -161,7 +172,8 @@ namespace GeeoSdk
 			}
 
 			// Stop the network check (ping)
-			webSocket.NetworkCheckStop();
+			if (networkCheckPings)
+				webSocket.NetworkCheckStop();
 
 			// Trigger the OnDisconnected event if any callback registered to it
 			if (OnDisconnected != null) { OnDisconnected(); }

@@ -10839,12 +10839,14 @@
             The SDK's WebSocket module to manage a Websocket connection to a Geeo instance.
             </summary>
         </member>
-        <member name="M:GeeoSdk.GeeoWS.#ctor(System.String,System.Boolean)">
+        <member name="M:GeeoSdk.GeeoWS.#ctor(System.String,System.Boolean,System.Boolean,System.Single)">
             <summary>
             WebSocket module's constructor.
             </summary>
             <param name="_wsUrl">The WebSocket endpoint URL.</param>
             <param name="_disconnectOnApplicationPause">If the WebSocket connection should be closed when the application focus is lost.</param>
+            <param name="_networkCheckPings">If regular pings should be sent to check if WebSocket is still alive. (should be used for debug purposes only)</param>
+            <param name="_networkCheckDelaySeconds">Delay (in seconds) between two network check pings. (5 seconds minimum, 30 seconds advised)</param>
         </member>
         <member name="M:GeeoSdk.GeeoWS.WebSocketConnect(System.String)">
             <summary>

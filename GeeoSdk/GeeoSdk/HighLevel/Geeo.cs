@@ -22,6 +22,12 @@ namespace GeeoSdk
 		// If the WebSocket connection should be closed when the application focus is lost
 		[SerializeField] private bool wsDisconnectOnApplicationPause = true;
 
+		// If regular pings should be sent to check if WebSocket is still alive (should be used for debug purposes only)
+		[SerializeField] private bool wsNetworkCheckPings = false;
+
+		// Delay (in seconds) between two network check pings (5 seconds minimum, 30 seconds advised)
+		[SerializeField] private float wsNetworkCheckDelaySeconds = 30f;
+
 		#region Public
 		/// <summary>
 		/// The Geeo SDK's HTTP networking module instance.
@@ -47,7 +53,7 @@ namespace GeeoSdk
 
 			// Instantiate networking modules
 			http = new GeeoHTTP(serverHttpUrl);
-			ws = new GeeoWS(serverWsUrl, wsDisconnectOnApplicationPause);
+			ws = new GeeoWS(serverWsUrl, wsDisconnectOnApplicationPause, wsNetworkCheckPings, wsNetworkCheckDelaySeconds);
 		}
 		#endregion
 

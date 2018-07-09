@@ -73,8 +73,8 @@ namespace GeeoSdk
 
 		#region Network Check (Ping)
 		// Delay after a network check finished before starting the next one
-		protected const float networkCheckDelaySeconds = 3f;
-		protected const int networkCheckDelayMilliseconds = (int)(networkCheckDelaySeconds * 1000f);
+		public float networkCheckDelaySeconds = 30f;
+		public int networkCheckDelayMilliseconds = 30000;
 		protected const string networkCheckTimeoutMessage = "Ping timeout reached";
 
 		/// <summary>

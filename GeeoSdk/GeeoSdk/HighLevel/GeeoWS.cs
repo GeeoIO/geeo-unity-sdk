@@ -45,6 +45,7 @@ namespace GeeoSdk
 			webSocket = new WebSocket_CrossPlatform();
 			#endif
 
+			_networkCheckDelaySeconds = Mathf.Max(5f, _networkCheckDelaySeconds);
 			webSocket.networkCheckDelaySeconds = _networkCheckDelaySeconds;
 			webSocket.networkCheckDelayMilliseconds = (int)(_networkCheckDelaySeconds * 1000f);
 		}
